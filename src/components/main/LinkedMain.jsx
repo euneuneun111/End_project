@@ -10,6 +10,7 @@ import MeetingMain from '../project/meeting/MeetingMain.jsx';
 import TaskMain from '../project/task/TaskMain.jsx';
 import ReportMain from '../project/report/ReportMain.jsx';
 import MypageMain from '../mypage/MypageMain.jsx';
+import Home from './Home.jsx';
 
 const Container = styled.div`
   width: 100vw;
@@ -57,6 +58,7 @@ function LinkedMain() {
                                 <Route path='/report/main' element={<ReportMain/>}></Route>
                                 <Route path='/task/main' element={<TaskMain/>}></Route>
                                 <Route path='/mypage/main' element={<MypageMain/>}></Route>
+                                <Route path='/home' element={<Home/>}></Route>
                             </Routes>
                         </ContentBox>
                         <Menu>
