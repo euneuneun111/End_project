@@ -35,7 +35,7 @@ function Navbar() {
             <StyledLink to="/home">
                 <NavItem icon="fa-solid fa-house" name="HOME" />
             </StyledLink>
-            <StyledLink to="/mypage">
+            <StyledLink to="/mypage/main">
                 <NavItem icon="fa-solid fa-user" name="MYPAGE" />
             </StyledLink>
         </Container>

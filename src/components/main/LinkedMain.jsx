@@ -9,6 +9,7 @@ import GantMain from '../project/gant/GantMain.jsx';
 import MeetingMain from '../project/meeting/MeetingMain.jsx';
 import TaskMain from '../project/task/TaskMain.jsx';
 import ReportMain from '../project/report/ReportMain.jsx';
+import MypageMain from '../mypage/MypageMain.jsx';
 
 const Container = styled.div`
   width: 100vw;
@@ -55,6 +56,7 @@ function LinkedMain() {
                                 <Route path='/meeting/main' element={<MeetingMain/>}></Route>
                                 <Route path='/report/main' element={<ReportMain/>}></Route>
                                 <Route path='/task/main' element={<TaskMain/>}></Route>
+                                <Route path='/mypage/main' element={<MypageMain/>}></Route>
                             </Routes>
                         </ContentBox>
                         <Menu>
