@@ -2,7 +2,10 @@ import React from 'react'
 
 function MeetingMain() {
   return (
+    <>
     <div>MeetingMain</div>
+    <h1>안녕</h1>
+    </>
   )
 }
 
