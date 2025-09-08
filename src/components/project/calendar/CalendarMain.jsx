@@ -4,40 +4,57 @@ import CalendarWrapper from './CalendarWrapper';
 import EventModal from './EventModal';
 import CalendarHeader from './CalendarHeader';
 import EventList from './EventList';
-
-// ✅ 헤더와 캘린더를 감싸는 카드 스타일을 추가합니다.
+import ProjectHeader from "../../header/ProjectHeader";
+const Container = styled.div`
+  width: 100%;
+  padding: 16px;
+  font-family: "Poppins", sans-serif;
+  background-color: #fafafa;
+  min-height: 100vh;
+  box-sizing: border-box;
+`;
 const CalendarCard = styled.div`
   background-color: white;
   border-radius: 12px;
-  box-shadow: 0 4px H20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
-  overflow: hidden;
+  /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); */
+  /* border: 1px solid #f0f0f0; */
+  
 `;
 
 function CalendarMain() {
   const calendarRef = useRef(null);
-  const [currentDateTitle, setCurrentDateTitle] = useState('');
+  
+  // ✅ 'selectedDate'를 유일한 날짜 상태로 사용합니다.
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     const initialEvents = [
       { id: '1', title: '팀 회의', start: '2025-09-08', extendedProps: { memo: '주간 보고 준비' } },
-      { id: '2', title: '프로젝트 마감', start: '2025-09-10', end: '2025-09-12' },
+      { id: '2', title: '프로젝트 마감', start: '2025-09-10', end: '2025-09-13' }, // 12일까지 보이도록 수정
     ];
     setEvents(initialEvents);
   }, []);
+
+  // ✅ 헤더의 DatePicker에서 날짜를 선택했을 때
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate);
+    calendarRef.current?.getApi().gotoDate(newDate);
+  };
   
-  const handleDatesSet = (newTitle) => {
-    setCurrentDateTitle(newTitle);
+  // ✅ 이전/다음 버튼으로 월을 변경했을 때
+  const handleDatesSet = (dateInfo) => {
+    setSelectedDate(dateInfo.view.currentStart);
   };
 
+  // ✅ 캘린더의 날짜 칸을 클릭했을 때
   const handleDateClick = (arg) => {
     arg.jsEvent.stopPropagation();
-    setSelectedDate(arg.date);
+    setSelectedDate(arg.date); // 유일한 날짜 상태를 업데이트
     setModalMode('add');
     setSelectedEvent({ start: arg.dateStr });
     setIsModalOpen(true);
@@ -79,11 +96,21 @@ function CalendarMain() {
     setModalMode('edit');
   };
 
+  const handleEventListSelect = (event) => {
+    setModalMode('detail');
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
   return (
+    <Container>
+    <ProjectHeader />
+
     <CalendarCard>
       <CalendarHeader
         calendarRef={calendarRef}
-        currentDateTitle={currentDateTitle}
+        currentDate={selectedDate}
+        onDateChange={handleDateChange}
       />
       <CalendarWrapper
         calendarRef={calendarRef}
@@ -93,7 +120,11 @@ function CalendarMain() {
         onDatesSet={handleDatesSet}
         selectedDate={selectedDate}
       />
-      <EventList events={events} selectedDate={selectedDate} />
+      <EventList 
+      events={events} 
+      selectedDate={selectedDate} 
+      onEventSelect={handleEventListSelect}
+      />
 
       {isModalOpen && (
         <EventModal
@@ -107,6 +138,7 @@ function CalendarMain() {
         />
       )}
     </CalendarCard>
+    </Container>
   );
 }
 

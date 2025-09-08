@@ -9,7 +9,7 @@ const EventListContainer = styled.div`
 const DateHeader = styled.h3`
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #555;
   margin-top: 1rem;
   margin-bottom: 1rem;
 `;
@@ -22,6 +22,11 @@ const EventItem = styled.div`
   padding: 0.8rem;
   margin-bottom: 0.5rem;
   border-left: 5px solid ${props => props.color || '#4A90E2'};
+  cursor: pointer; 
+  transition: background-color 0.2s ease;
+  &:hover {
+    background-color: #eaf2f8;
+  }
 `;
 
 const EventInfo = styled.div`
@@ -47,7 +52,7 @@ const NoEventsMessage = styled.p`
 
 
 // --- Component ---
-const EventList = ({ events, selectedDate }) => {
+const EventList = ({ events, selectedDate, onEventSelect }) => {
 
   // 선택된 날짜에 해당하는 이벤트만 필터링하는 로직
   const filteredEvents = events.filter(event => {
@@ -69,7 +74,7 @@ const EventList = ({ events, selectedDate }) => {
       
       {filteredEvents.length > 0 ? (
         filteredEvents.map(event => (
-          <EventItem key={event.id} color={event.color}>
+          <EventItem key={event.id} color={event.color} onClick={()=> onEventSelect(event)}>
             <i className="fa-solid fa-users" style={{ color: '#555' }}></i> {/* 예시 아이콘 */}
             <EventInfo>
               <EventTitle>{event.title}</EventTitle>

@@ -9,7 +9,6 @@ const CalendarWrapperStyled = styled.div`
   padding: 0 1.5rem 1.5rem;
 
   /* --- 캘린더 내부 요소 스타일링 (Figma 디자인 적용) --- */
-
   .fc-col-header-cell-cushion {
     color: #888;
     font-size: 0.8rem;
@@ -32,7 +31,6 @@ const CalendarWrapperStyled = styled.div`
       border-color: #f0f0f0;
   }
 
-  /* ✅ 선택된 날짜에 적용될 원형 배경 스타일 */
   .selected-day .fc-daygrid-day-number {
     background-color: #4A90E2;
     border-radius: 50%;
@@ -43,7 +41,6 @@ const CalendarWrapperStyled = styled.div`
     color: #ccc;
   }
   
-  /* 오늘 날짜이면서 동시에 선택된 날짜의 스타일 (겹칠 경우) */
   .fc-day-today.selected-day .fc-daygrid-day-number {
       border: none;
   }
@@ -65,11 +62,14 @@ const CalendarWrapper = ({ calendarRef, events, onDateClick, onEventClick, onDat
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={false}
         initialView="dayGridMonth"
-        aspectRatio={0.85} 
+        aspectRatio={0.78} 
         events={events}
         dateClick={onDateClick}
         eventClick={onEventClick}
-        datesSet={(dateInfo) => onDatesSet(dateInfo.view.title)}
+        
+        // ✅ 부모에게 dateInfo 객체 전체를 전달하도록 수정
+        datesSet={(dateInfo) => onDatesSet(dateInfo)}
+        
         dayCellClassNames={dayCellClassNames}
         eventContent={() => <></>}
       />

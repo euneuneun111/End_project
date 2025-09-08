@@ -9,7 +9,7 @@ const ModalBackdrop = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -31,22 +31,27 @@ const ModalHeader = styled.h2`
 `;
 
 const FormField = styled.div`
-  margin-bottom: 1rem;
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-  }
-  input, textarea {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box; /* Ensures padding doesn't affect width */
-  }
+  /* ... */
+  input[type="text"],
+  input[type="date"], /* ✅ date 타입 input도 함께 스타일링 */
   textarea {
-    min-height: 80px;
-    resize: vertical;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0; /* ✅ 부드러운 테두리 */
+    border-radius: 8px; /* ✅ 둥근 모서리 */
+    background-color: #f8f8f8; /* ✅ 살짝 연한 배경 */
+    font-size: 1rem;
+    color: #333;
+    &:focus {
+      outline: none;
+      border-color: #4A90E2; /* ✅ 포커스 시 색상 변경 */
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+  }
+
+  textarea {
+    min-height: 80px; /* ✅ 메모 필드 최소 높이 설정 */
+    resize: vertical; /* ✅ 세로로만 크기 조절 가능하게 */
   }
 `;
 
@@ -69,8 +74,12 @@ const Button = styled.button`
     color: white;
   }
   &.secondary {
-    background-color: #6c757d;
-    color: white;
+    background-color: #f0f0f0; /* ✅ 배경색을 회색으로 변경 */
+    color: #555; /* ✅ 글자색도 변경 */
+    border: none; /* ✅ 테두리 제거 */
+    &:hover {
+      background-color: #e0e0e0;
+    }
   }
   &.danger {
     background-color: #dc3545;
@@ -81,7 +90,7 @@ const Button = styled.button`
 // ------------------ Component ------------------
 
 const EventModal = ({ isOpen, onClose, onSubmit, onDelete, onSwitchToEdit, mode, initialData }) => {
-  
+
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
@@ -92,7 +101,7 @@ const EventModal = ({ isOpen, onClose, onSubmit, onDelete, onSwitchToEdit, mode,
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -107,7 +116,7 @@ const EventModal = ({ isOpen, onClose, onSubmit, onDelete, onSwitchToEdit, mode,
 
     onSubmit(processedData);
   };
-  
+
   const handleDelete = () => {
     if (window.confirm('정말로 이 일정을 삭제하시겠습니까?')) {
       onDelete(formData.id);
@@ -157,10 +166,16 @@ const EventModal = ({ isOpen, onClose, onSubmit, onDelete, onSwitchToEdit, mode,
               <label>시작일</label>
               <input type="date" name="start" value={(formData.start || '').split('T')[0]} onChange={handleChange} required />
             </FormField>
-            
+
             <FormField>
               <label>종료일 (선택 사항)</label>
-              <input type="date" name="end" value={(formData.end || '').split('T')[0]} onChange={handleChange} />
+              <input
+                type="date"
+                name="end"
+                value={(formData.end || '').split('T')[0]}
+                onChange={handleChange}
+                placeholder="YYYY-MM-DD" /* ✅ placeholder 추가 */
+              />
             </FormField>
             <FormField>
               <label>메모</label>
