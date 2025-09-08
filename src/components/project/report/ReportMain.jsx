@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import ProjectHeader from "../../header/ProjectHeader";
 
 const Container = styled.div`
   width: 100%;
@@ -133,6 +134,8 @@ function ReportMain() {
 
   return (
     <Container>
+             <ProjectHeader />
+
       {/* 상단 바 */}
       <TopBar>
         <DateInput type="date" />
