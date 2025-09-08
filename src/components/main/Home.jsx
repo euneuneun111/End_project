@@ -1,6 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import mobileLogo from "../resource/image/모바일 로고.png";
+import { useNavigate } from "react-router-dom";
+
 
 
 const Container = styled.div`
@@ -67,20 +69,24 @@ const CreateButton = styled.button`
 `;
 
 function Home() {
-    return (
-        <Container>
-            {/* 로고 아이콘 - SVG로 대체 */}
-            <Logo/>
-            {/* 프로젝트 명 */}
-            <Title>LINKED</Title>
+    const navigate = useNavigate();
 
-            {/* 검색창 */}
-            <SearchBox type="text" placeholder="Search" />
+  return (
+    <Container>
+      {/* 로고 아이콘 - SVG로 대체 */}
+      <Logo />
+      {/* 프로젝트 명 */}
+      <Title>LINKED</Title>
 
-            {/* 프로젝트 생성 버튼 */}
-            <CreateButton>CREATE A PROJECT</CreateButton>
-        </Container>
-    );
+      {/* 검색창 */}
+      <SearchBox type="text" placeholder="프로젝트를 검색하세요." />
+
+      {/* 프로젝트 생성 버튼 */}
+      <CreateButton onClick={() => navigate("/project/create")}>
+        CREATE A PROJECT
+      </CreateButton>        
+      </Container>
+  );
 }
 
 export default Home;

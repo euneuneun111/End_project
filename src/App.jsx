@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { createGlobalStyle } from 'styled-components';
-import LinkedMain from './components/main/linkedmain';
+import LinkedMain from './components/main/LinkedMain';
+
 
 
 const GlobaStyle = createGlobalStyle`
