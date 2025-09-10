@@ -45,10 +45,10 @@ const DatePickerWrapper = styled.div`
 `;
 
 
-const CalendarHeader = ({ calendarRef, currentDate, onDateChange }) => {
+const CalendarHeader = ({ currentDate, onDateChange, onMonthChange }) => {
 
-  const goToNext = () => calendarRef.current?.getApi().next();
-  const goToPrev = () => calendarRef.current?.getApi().prev();
+  const goToNext = () => onMonthChange('next');
+  const goToPrev = () => onMonthChange('prev');
 
   return (
     <HeaderContainer>

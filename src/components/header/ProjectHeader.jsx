@@ -6,7 +6,7 @@ import HeaderItem from './HeaderItem';
 const HeaderWrapper = styled.div`
   width: 100%;
   display: flex;
-  justify-content: center; /* 메뉴 중앙 정렬 */
+  justify-content: flex-start; /* 메뉴 중앙 정렬 */
   overflow-x: auto;
   padding: 10px 0;
   scrollbar-width: none;
