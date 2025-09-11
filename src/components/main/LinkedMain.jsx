@@ -22,6 +22,7 @@ import ReportModify from '../project/report/ReportModify.jsx';
 
 
 import MypageMain from '../mypage/MypageMain.jsx';
+import Login from '../mypage/LoginPage.jsx'
 
 
 const Container = styled.div`
@@ -87,6 +88,7 @@ function LinkedMain() {
 
                 <Route path='/task/main' element={<TaskMain />}></Route>
                 <Route path='/mypage/main' element={<MypageMain />}></Route>
+                <Route path='/mypage/login' element={<Login />}></Route>
 
               </Routes>
             </ContentBox>
