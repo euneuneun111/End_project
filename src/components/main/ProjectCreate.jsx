@@ -2,20 +2,22 @@ import React, { useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
+  width: 95%;
   max-width: 600px;
-  margin: 60px auto;
-  padding: 36px;
-  background: linear-gradient(145deg, #f0f4ff, #ffffff);
-  border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  margin: 40px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  font-family: 'Poppins', sans-serif;
 `;
 
 const Title = styled.h2`
-  margin-bottom: 28px;
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 600;
   text-align: center;
   color: #4287c4;
+  margin-bottom: 24px;
 `;
 
 const Form = styled.form`
@@ -24,94 +26,152 @@ const Form = styled.form`
   gap: 24px;
 `;
 
+const ImageUploadWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const HiddenFileInput = styled.input`
+  display: none; /* 파일 이름 숨김 */
+`;
+
+const FileButton = styled.button`
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  width: fit-content;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const ImagePreviewWrapper = styled.div`
+  width: 40%; /* 부모 전체 너비 사용 */
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 150px;
+  padding: 10px;
+  border: 1px dashed #ccc;
+  border-radius: 12px;
+  justify-content: center; /* 가로 중앙 정렬 */
+  align-items: center;     /* 세로 중앙 정렬 */
+  margin: 0 auto;          /* wrapper 자체를 중앙으로 */
+`;
+const ImagePreview = styled.img`
+  width: 200px;  /* 크기 축소 */
+  height: 150px; /* 크기 축소 */
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+`;
 const Input = styled.input`
-  padding: 14px 20px;
-  border: 2px solid #d0d7de;
-  border-radius: 15px;
-  font-size: 1rem;
-  transition: all 0.3s;
+  width: 100%;
+  padding: 10px 100px 10px 14px; 
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
 
   &:focus {
     border-color: #4287c4;
-    box-shadow: 0 0 8px rgba(66, 135, 196, 0.3);
+    box-shadow: 0 0 6px rgba(66, 135, 196, 0.2);
     outline: none;
+  }
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const AddButton = styled.button`
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 80%;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
   }
 `;
 
 const TextArea = styled.textarea`
-  padding: 14px 20px;
-  border: 2px solid #d0d7de;
-  border-radius: 15px;
-  font-size: 1rem;
-  resize: none;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  resize: vertical;
   min-height: 120px;
-  transition: all 0.3s;
-
-  &:focus {
-    border-color: #4287c4;
-    box-shadow: 0 0 8px rgba(66, 135, 196, 0.3);
-    outline: none;
-  }
-`;
-
-const Button = styled.button`
-  padding: 14px;
-  background: linear-gradient(90deg, #4287c4, #356aa3);
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: bold;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: all 0.3s;
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(66, 135, 196, 0.4);
-  }
-`;
-
-const MemberSection = styled.div`
-  display: flex;
-  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const MemberList = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  min-height: 40px;
 `;
 
 const MemberItem = styled.div`
   padding: 6px 12px;
   border-radius: 12px;
-  background: #e6f0ff;
+  background-color: #e6f0ff;
   color: #0366d6;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+`;
 
-  &:hover {
-    background: #c2e0ff;
-    transform: scale(1.05);
-  }
+const SubmitButton = styled.button`
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background-color: #4287c4;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
 `;
 
 function ProjectCreate() {
   const [form, setForm] = useState({ name: "", description: "" });
   const [nickname, setNickname] = useState("");
   const [members, setMembers] = useState([]);
+  const [images, setImages] = useState([]);
+  const fileInputRef = React.useRef(null);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
   const handleAddMember = () => {
     if (!nickname.trim()) return;
-    setMembers([...members, nickname]);
+    if (members.includes(nickname.trim())) return;
+    setMembers([...members, nickname.trim()]);
     setNickname("");
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    const filePreviews = files.map(file => URL.createObjectURL(file));
+    setImages([...images, ...filePreviews]);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("프로젝트 생성:", { ...form, members });
+    console.log("프로젝트 생성:", { ...form, members, images });
     alert("프로젝트가 생성되었습니다!");
   };
 
@@ -119,6 +179,30 @@ function ProjectCreate() {
     <Container>
       <Title>프로젝트 생성</Title>
       <Form onSubmit={handleSubmit}>
+
+        {/* 이미지 업로드 */}
+        <ImageUploadWrapper>
+          <ImagePreviewWrapper>
+            {images.length === 0 && <span style={{ color: "#ccc" }}>이미지 미리보기</span>}
+            {images.map((src, i) => (
+              <ImagePreview key={i} src={src} alt={`preview-${i}`} />
+            ))}
+          </ImagePreviewWrapper>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <FileButton type="button" onClick={() => fileInputRef.current.click()}>
+              이미지 선택
+            </FileButton>
+          </div>
+          <HiddenFileInput
+            type="file"
+            multiple
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+          />
+        </ImageUploadWrapper>
+
+        {/* 프로젝트 이름 */}
         <Input
           type="text"
           name="name"
@@ -127,6 +211,8 @@ function ProjectCreate() {
           onChange={handleChange}
           required
         />
+
+        {/* 프로젝트 설명 */}
         <TextArea
           name="description"
           placeholder="프로젝트 설명"
@@ -135,25 +221,25 @@ function ProjectCreate() {
           required
         />
 
-        <MemberSection>
+        {/* 닉네임 입력 + 추가 버튼 */}
+        <InputWrapper>
           <Input
             type="text"
-            placeholder="닉네임 검색"
+            placeholder="닉네임 입력"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
           />
-          <Button type="button" onClick={handleAddMember}>
-            추가
-          </Button>
-        </MemberSection>
+          <AddButton type="button" onClick={handleAddMember}>추가</AddButton>
+        </InputWrapper>
 
+        {/* 멤버 리스트 */}
         <MemberList>
           {members.map((m, i) => (
             <MemberItem key={i}>{m}</MemberItem>
           ))}
         </MemberList>
 
-        <Button type="submit">CREATE</Button>
+        <SubmitButton type="submit">프로젝트 생성</SubmitButton>
       </Form>
     </Container>
   );
