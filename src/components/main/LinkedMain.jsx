@@ -94,7 +94,7 @@ function LinkedMain() {
 
                 <Route path='/task/main' element={<TaskMain />}></Route>
                 <Route path='/mypage/main' element={<MypageMain />}></Route>
-                <Route path='/mypage/login' element={<Login />}></Route>
+                <Route path='/login' element={<Login />}></Route>
 
               </Routes>
             </ContentBox>
