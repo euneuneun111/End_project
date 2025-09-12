@@ -1,13 +1,37 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
+const slideOutLeft = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-20px); opacity: 0; }
+`;
+
+const slideInRight = keyframes`
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
+const slideOutRight = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(20px); opacity: 0; }
+`;
+
+const slideInLeft = keyframes`
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
 const CalendarWrapperStyled = styled.div`
   padding: 0 1.5rem 1.5rem;
 
+  &.slide-out-left { animation: ${slideOutLeft} 0.25s forwards; }
+  &.slide-in-right { animation: ${slideInRight} 0.25s forwards; }
+  &.slide-out-right { animation: ${slideOutRight} 0.25s forwards; }
+  &.slide-in-left { animation: ${slideInLeft} 0.25s forwards; }
   /* --- 캘린더 내부 요소 스타일링 (Figma 디자인 적용) --- */
   .fc-col-header-cell-cushion {
     color: #888;
@@ -46,7 +70,7 @@ const CalendarWrapperStyled = styled.div`
   }
 `;
 
-const CalendarWrapper = ({ calendarRef, events, onDateClick, onEventClick, onDatesSet, selectedDate }) => {
+const CalendarWrapper = ({ calendarRef, events, onDateClick, onEventClick, onDatesSet, selectedDate, animationClass }) => {
 
   const dayCellClassNames = (arg) => {
     if (selectedDate && arg.date.toDateString() === selectedDate.toDateString()) {
@@ -56,7 +80,7 @@ const CalendarWrapper = ({ calendarRef, events, onDateClick, onEventClick, onDat
   };
 
   return (
-    <CalendarWrapperStyled>
+    <CalendarWrapperStyled className={animationClass}>
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -66,10 +90,7 @@ const CalendarWrapper = ({ calendarRef, events, onDateClick, onEventClick, onDat
         events={events}
         dateClick={onDateClick}
         eventClick={onEventClick}
-        
-        // ✅ 부모에게 dateInfo 객체 전체를 전달하도록 수정
         datesSet={(dateInfo) => onDatesSet(dateInfo)}
-        
         dayCellClassNames={dayCellClassNames}
         eventContent={() => <></>}
       />

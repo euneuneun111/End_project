@@ -39,6 +39,12 @@ const EventTitle = styled.div`
   color: #333;
 `;
 
+const EventMemo = styled.div`
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 4px;
+`;
+
 const EventTime = styled.div`
   font-size: 0.8rem;
   color: #888;
@@ -54,15 +60,11 @@ const NoEventsMessage = styled.p`
 // --- Component ---
 const EventList = ({ events, selectedDate, onEventSelect }) => {
 
-  // 선택된 날짜에 해당하는 이벤트만 필터링하는 로직
   const filteredEvents = events.filter(event => {
-    // 이벤트의 시작 날짜를 Date 객체로 변환
     const eventStartDate = new Date(event.start);
-    // '연-월-일'이 같은지 비교하여 필터링
     return eventStartDate.toDateString() === selectedDate.toDateString();
   });
 
-  // 날짜 헤더 포맷 설정 (예: "8 September 2025")
   const formattedDate = new Intl.DateTimeFormat('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric'
   }).format(selectedDate);
@@ -78,9 +80,8 @@ const EventList = ({ events, selectedDate, onEventSelect }) => {
             <i className="fa-solid fa-users" style={{ color: '#555' }}></i> {/* 예시 아이콘 */}
             <EventInfo>
               <EventTitle>{event.title}</EventTitle>
-              {/* 종일 일정이 아니면 시간 표시 */}
-              {event.end && <EventTime>{new Date(event.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</EventTime>}
-            </EventInfo>
+              {event.calendarContent && <EventMemo>{event.calendarContent}</EventMemo>}
+              </EventInfo>
           </EventItem>
         ))
       ) : (
