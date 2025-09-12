@@ -477,9 +477,10 @@ function TaskMain() {
   return (
     <>
       <Container>
-        <ProjectHeader />
 
         <ContentWrapper>
+                  <ProjectHeader />
+
           <Header>
             <TitleSection>
               <Title>일감</Title>

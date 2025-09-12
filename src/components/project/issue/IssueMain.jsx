@@ -434,9 +434,10 @@ function IssueMain() {
   return (
     <>
       <Container>
-        <ProjectHeader />
 
         <ContentWrapper>
+                  <ProjectHeader />
+
           <Header>
             <TitleSection>
               <Title>이슈</Title>
