@@ -26,7 +26,6 @@ import ReportModify from '../project/report/ReportModify.jsx';
 
 
 import MypageMain from '../mypage/MypageMain.jsx';
-import Login from "../login/LoginPage.jsx";
 
 
 
@@ -94,7 +93,6 @@ function LinkedMain() {
 
                 <Route path='/task/main' element={<TaskMain />}></Route>
                 <Route path='/mypage/main' element={<MypageMain />}></Route>
-                <Route path='/login' element={<Login />}></Route>
 
               </Routes>
             </ContentBox>
