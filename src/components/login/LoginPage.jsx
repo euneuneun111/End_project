@@ -90,19 +90,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault(); // 페이지 리로드 방지
+
     if (!id || !password) {
       alert("ID와 Password를 입력해주세요.");
       return;
     }
 
-    const res = await login(id, password);
-
-    if (res.success) {
-      alert("로그인 성공!");
-      navigate("/"); // React Router로 메인 페이지 이동
-    } else {
-      alert("로그인 실패: " + res.message);
+    try {
+      const res = await login(id, password);
+      if (res.success) {
+        alert("로그인 성공!");
+        navigate("/home");
+      } else {
+        alert("로그인 실패: " + res.message);
+      }
+    } catch (err) {
+      console.error("로그인 중 오류:", err);
+      alert("서버 오류 발생");
     }
   };
 
@@ -112,23 +118,25 @@ export default function LoginPage() {
         <Logo>LINKED</Logo>
         <Title>LOGIN</Title>
 
-        <Label>ID</Label>
-        <Input
-          type="text"
-          placeholder="Enter your ID"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-        />
+        <form onSubmit={handleLogin}>
+          <Label>ID</Label>
+          <Input
+            type="text"
+            placeholder="Enter your ID"
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+          />
 
-        <Label>Password</Label>
-        <Input
-          type="password"
-          placeholder="Enter your Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <Label>Password</Label>
+          <Input
+            type="password"
+            placeholder="Enter your Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <Button onClick={handleLogin}>Login</Button>
+          <Button type="submit">Login</Button>
+        </form>
 
         <Register>
           Don’t have an Account? <span>Register</span>

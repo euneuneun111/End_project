@@ -1,24 +1,27 @@
-// src/LoginApi.js
+// LoginApi.js
 import axios from "axios";
 
-// Axios 인스턴스 생성 (Base URL + 세션 쿠키 포함)
 const api = axios.create({
-  baseURL: "http://localhost:8080/api/commons",
+  baseURL: "/project/commons",
   withCredentials: true,
+  headers: { "Content-Type": "application/x-www-form-urlencoded" },
 });
 
-// 로그인
-export const login = async (id, password) => {
+export const login = async (user_id, user_pwd) => {
+  const params = new URLSearchParams();
+  params.append("user_id", user_id);
+  params.append("user_pwd", user_pwd);
+
   try {
-    const res = await api.post("/login", { id, password });
-    return res.data;
+    const res = await api.post("/login/post", params); // Security 가로채는 URL
+    return { success: true }; // Security가 리다이렉션 후 반환
   } catch (error) {
     console.error("로그인 요청 실패", error);
-    return { success: false, message: "서버 오류" };
+    return { success: false, message: "로그인 실패" };
   }
 };
 
-// 로그아웃
+
 export const logout = async () => {
   try {
     const res = await api.post("/logout");
@@ -29,7 +32,6 @@ export const logout = async () => {
   }
 };
 
-// 세션 체크
 export const checkSession = async () => {
   try {
     const res = await api.get("/check-session");
