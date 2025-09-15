@@ -1,7 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ProjectHeader from "../../header/ProjectHeader";
+import axios from 'axios';
+import Pagination from './Pagination';
 
+
+const formatDateForInput = (dateValue) => {
+  if (!dateValue) return '';
+  try {
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return '';
+
+    // ✅ UTC가 아닌 로컬 시간 기준으로 년, 월, 일을 가져옴
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작하므로 +1
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    return '';
+  }
+};
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -130,11 +150,13 @@ const DeleteButton = styled.button`
 
 function NewTaskModal({ onClose, onSave }) {
   const [form, setForm] = useState({
-    title: "",
-    status: "",
-    description: "",
-    priority: "",
-    assignee: ""
+    taskTitle: "",
+    taskDescription: "",
+    taskStatus: "",
+    taskUrgency: "",
+    taskManagerId: "",
+    taskStartDate: "",
+    taskEndDate: "",
   });
 
   const handleChange = (e) => {
@@ -146,52 +168,64 @@ function NewTaskModal({ onClose, onSave }) {
   };
 
   return (
-
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
-        <ModalHeader>
-          <h2>새 일감 생성</h2>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
-        </ModalHeader>
-
+        <ModalHeader><h2>새 일감 생성</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
+        
+        {/* ✅ 누락되었던 '일감 이름' 입력 필드 추가 */}
         <FormGroup>
           <FormLabel>일감 이름</FormLabel>
-          <FormInput name="title" value={form.title} onChange={handleChange} />
+          <FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} />
         </FormGroup>
 
+        {/* ✅ 누락되었던 '일감 설명' 입력 필드 추가 */}
         <FormGroup>
           <FormLabel>일감 설명</FormLabel>
-          <FormTextarea name="description" value={form.description} onChange={handleChange} />
+          <FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} />
+        </FormGroup>
+        
+        <FormGroup>
+          <FormLabel>일감 상태</FormLabel>
+          <FormSelect name="taskStatus" value={form.taskStatus} onChange={handleChange}>
+            <option value="">선택</option>
+            <option value="진행 중">진행 중</option>
+            <option value="완료">완료</option>
+            <option value="검토 중">검토 중</option>
+            <option value="대기 중">대기 중</option>
+          </FormSelect>
         </FormGroup>
 
         <FormGroup>
-          <FormLabel>일감 상태</FormLabel>
-          <FormSelect name="status" value={form.status} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="Ongoing">Ongoing</option>
-            <option value="Completed">Completed</option>
-            <option value="In review">In review</option>
-          </FormSelect>
+          <FormLabel>시작일</FormLabel>
+          <FormInput type="date" name="taskStartDate" value={form.taskStartDate} onChange={handleChange} />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>종료일</FormLabel>
+          <FormInput type="date" name="taskEndDate" value={form.taskEndDate} onChange={handleChange} />
         </FormGroup>
 
         <FormGroup>
           <FormLabel>우선순위</FormLabel>
-          <FormSelect name="priority" value={form.priority} onChange={handleChange}>
+          <FormSelect name="taskUrgency" value={form.taskUrgency} onChange={handleChange}>
             <option value="">선택</option>
-            <option value="Critical">Critical</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Minor">Minor</option>
+            <option value="긴급">긴급</option>
+            <option value="높음">높음</option>
+            <option value="보통">보통</option>
+            <option value="낮음">낮음</option>
+          </FormSelect>
+        </FormGroup>
+        
+        {/* ✅ 누락되었던 '담당자' 선택 필드 추가 */}
+        <FormGroup>
+          <FormLabel>담당자</FormLabel>
+          <FormSelect name="taskManagerId" value={form.taskManagerId} onChange={handleChange}>
+            <option value="">선택</option>
+            <option value="mimi">mimi</option>
+            <option value="cheolsu">cheolsu</option>
           </FormSelect>
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel>담당자</FormLabel>
-          <FormSelect name="assignee" value={form.assignee} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="홍길동">홍길동</option>
-            <option value="김철수">김철수</option>
-          </FormSelect>
-        </FormGroup>
+        
 
         <ModalFooter>
           <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
@@ -205,63 +239,34 @@ function NewTaskModal({ onClose, onSave }) {
 
 function TaskDetailModal({ task, onClose, onUpdate, onDelete }) {
   const [form, setForm] = useState(task);
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  useEffect(() => { setForm(task); }, [task]); // ✅ 부모로부터 받은 task가 바뀔 때 form 상태 동기화
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
-        <ModalHeader>
-          <h2>일감 상세보기</h2>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
-        </ModalHeader>
+        <ModalHeader><h2>일감 상세보기</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
+        
+        <FormGroup><FormLabel>일감 이름</FormLabel><FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} /></FormGroup>
+        <FormGroup><FormLabel>일감 설명</FormLabel><FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} /></FormGroup>
+        <FormGroup><FormLabel>담당자</FormLabel><FormSelect name="taskManagerId" value={form.taskManagerId} onChange={handleChange}><option value="mimi">mimi</option><option value="cheolsu">cheolsu</option></FormSelect></FormGroup>
 
+        {/* ✅ 시작일, 종료일 입력 필드 JSX 추가 및 formatDateForInput 사용 */}
         <FormGroup>
-          <FormLabel>일감 이름</FormLabel>
-          <FormInput name="title" value={form.title} onChange={handleChange} />
+          <FormLabel>시작일</FormLabel>
+          <FormInput type="date" name="taskStartDate" value={formatDateForInput(form.taskStartDate)} onChange={handleChange} />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>종료일</FormLabel>
+          <FormInput type="date" name="taskEndDate" value={formatDateForInput(form.taskEndDate)} onChange={handleChange} />
         </FormGroup>
 
-        <FormGroup>
-          <FormLabel>일감 설명</FormLabel>
-          <FormTextarea name="description" value={form.description} onChange={handleChange} />
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>일감 상태</FormLabel>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <FormSelect name="status" value={form.status} onChange={handleChange}>
-              <option value="Ongoing">Ongoing</option>
-              <option value="Completed">Completed</option>
-              <option value="In review">In review</option>
-            </FormSelect>
-          </div>
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>우선순위</FormLabel>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <FormSelect name="priority" value={form.priority} onChange={handleChange}>
-              <option value="Critical">Critical</option>
-              <option value="Moderate">Moderate</option>
-              <option value="Minor">Minor</option>
-            </FormSelect>
-          </div>
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>담당자</FormLabel>
-          <FormSelect name="assignee" value={form.assignee} onChange={handleChange}>
-            <option value="홍길동">홍길동</option>
-            <option value="김철수">김철수</option>
-          </FormSelect>
-        </FormGroup>
-
-        <ModalFooter>
-          <SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton>
-          <DeleteButton onClick={() => onDelete(task.id)}>🗑 삭제</DeleteButton>
-        </ModalFooter>
+        <FormGroup><FormLabel>일감 상태</FormLabel><FormSelect name="taskStatus" value={form.taskStatus} onChange={handleChange}><option value="진행 중">진행 중</option><option value="완료">완료</option><option value="검토 중">검토 중</option><option value="대기 중">대기 중</option></FormSelect></FormGroup>
+        <FormGroup><FormLabel>우선순위</FormLabel><FormSelect name="taskUrgency" value={form.taskUrgency} onChange={handleChange}><option value="긴급">긴급</option><option value="높음">높음</option><option value="보통">보통</option><option value="낮음">낮음</option></FormSelect></FormGroup>
+        
+        <ModalFooter><SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton><DeleteButton onClick={() => onDelete(task.taskId)}>🗑 삭제</DeleteButton></ModalFooter>
       </ModalWrapper>
     </ModalOverlay>
   );
@@ -402,18 +407,20 @@ const PageButton = styled.button`
 // --- 스타일 헬퍼 ---
 const getStatusStyle = (status) => {
   switch (status) {
-    case 'Ongoing': return { color: '#4f46e5', bgColor: '#e0e7ff' };
-    case 'Completed': return { color: '#16a34a', bgColor: '#dcfce7' };
-    case 'In review': return { color: '#c2410c', bgColor: '#ffedd5' };
+    case '진행 중': return { color: '#4f46e5', bgColor: '#e0e7ff' };
+    case '완료': return { color: '#16a34a', bgColor: '#dcfce7' };
+    case '검토 중': return { color: '#9333ea', bgColor: '#f3e8ff' };
+    case '대기 중': return { color: '#c2410c', bgColor: '#ffedd5' };
     default: return { color: '#64748b', bgColor: '#f8fafc' };
   }
 };
 
 const getPriorityStyle = (priority) => {
   switch (priority) {
-    case 'Critical': return { color: '#dc2626', bgColor: '#fee2e2' };
-    case 'Moderate': return { color: '#2563eb', bgColor: '#dbeafe' };
-    case 'Minor': return { color: '#65a30d', bgColor: '#ecfccb' };
+    case '긴급': return { color: '#dc2626', bgColor: '#fee2e2' };
+    case '높음': return { color: '#c2410c', bgColor: '#ffedd5' };
+    case '보통': return { color: '#2563eb', bgColor: '#dbeafe' };
+    case '낮음': return { color: '#65a30d', bgColor: '#ecfccb' };
     default: return { color: '#64748b', bgColor: '#f8fafc' };
   }
 };
@@ -422,7 +429,7 @@ const ContentWrapper = styled.div`
   width: 100%;
   background-color: #ffffff;
   border-radius: 12px;
-  padding: 20px 15px;
+  padding: 20px 15px 90px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 
   display: flex;
@@ -450,80 +457,108 @@ const PaginationContainer = styled.div`
 `;
 // --- 메인 ---
 function TaskMain() {
-  const [tasks, setTasks] = useState([
-    { id: 'TSK-1', title: '샘플 작업', status: 'Ongoing', priority: 'Moderate', description: '샘플 설명', assignee: '홍길동' }
-  ]);
+  const [tasks, setTasks] = useState([]); // ✅ 빈 배열로 초기화
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [pageMaker, setPageMaker] = useState(null); // ✅ 페이지네이션 상태 추가
+  const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID
 
-  // ✅ 새 일감 추가
-  const handleAddTask = (newTask) => {
-    setTasks([...tasks, { ...newTask, id: `TSK-${tasks.length + 1}` }]);
-    setIsModalOpen(false);
+  // ✅ 일감 목록을 서버에서 불러오는 함수
+  const fetchTasks = async (page = 1) => {
+    try {
+      const response = await axios.get(`/project/main/project/api/${projectId}/tasks`, { params: { page } });
+      if (response.data) {
+        setTasks(response.data.taskList || []);
+        setPageMaker(response.data.pageMaker);
+      }
+    } catch (error) { console.error("일감 목록 로딩 실패:", error); }
   };
 
-  // ✅ 일감 수정
-  const handleUpdateTask = (updatedTask) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
-    setSelectedTask(null);
+  // ✅ 컴포넌트 로드 시 일감 목록 불러오기
+  useEffect(() => { fetchTasks(1); }, []);
+  
+  // ✅ 페이지 변경 핸들러
+  const handlePageChange = (page) => { fetchTasks(page); };
+
+  // ✅ 새 일감 추가 (API 연동)
+  const handleAddTask = async (newTask) => {
+    try {
+      await axios.post(`/project/main/project/${projectId}/tasklist`, newTask);
+      alert("새로운 일감이 등록되었습니다.");
+      setIsModalOpen(false);
+      fetchTasks(1);
+    } catch (error) {
+      console.error("일감 생성 실패:", error);
+      // ✅ 사용자에게 실패 알림을 보여주는 코드 추가
+      alert("일감 생성에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
-  // ✅ 일감 삭제
-  const handleDeleteTask = (taskId) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
-    setSelectedTask(null);
+  // ✅ 일감 수정 (API 연동)
+  const handleUpdateTask = async (updatedTask) => {
+    try {
+      await axios.put(`/project/main/project/${projectId}/tasklist/${updatedTask.taskId}`, updatedTask);
+      
+      alert("일감이 수정되었습니다.");
+      setSelectedTask(null);
+      
+      // ✅ 수정 성공 후, 목록 전체를 다시 불러옴
+      fetchTasks(pageMaker ? pageMaker.page : 1); 
+
+    } catch (error) { 
+      console.error("일감 수정 실패:", error); 
+      alert("일감 수정에 실패했습니다.");
+    }
+  };
+
+  // ✅ 일감 삭제 (API 연동)
+  const handleDeleteTask = async (taskId) => {
+    if (window.confirm("정말로 이 일감을 삭제하시겠습니까?")) {
+      try {
+        await axios.delete(`/project/main/project/${projectId}/tasklist/${taskId}`);
+        alert("일감이 삭제되었습니다.");
+        setSelectedTask(null);
+        fetchTasks(1); // 목록 새로고침
+      } catch (error) { console.error("일감 삭제 실패:", error); }
+    }
   };
 
   return (
     <>
       <Container>
-
         <ContentWrapper>
-                  <ProjectHeader />
-
+          <ProjectHeader />
           <Header>
-            <TitleSection>
-              <Title>일감</Title>
-              <SearchInput placeholder="일감 검색" />
-            </TitleSection>
+            <TitleSection><Title>일감</Title><SearchInput placeholder="일감 검색" /></TitleSection>
             <NewTaskButton onClick={() => setIsModalOpen(true)}>+ 새 일감</NewTaskButton>
           </Header>
-
           <TaskListWrapper>
+            {/* ✅ DTO 필드명에 맞게 수정 */}
             {tasks.map((task) => (
-              <TaskItemRow key={task.id} onClick={() => setSelectedTask(task)}>
+              <TaskItemRow key={task.taskId} onClick={() => setSelectedTask(task)}>
                 <TaskTopLine>
                   <TaskInfo>
-                    <TaskId>{task.id}</TaskId>
-                    <TaskTitle>{task.title}</TaskTitle>
+                    <TaskId>{task.taskId}</TaskId>
+                    <TaskTitle>{task.taskTitle}</TaskTitle>
                   </TaskInfo>
                 </TaskTopLine>
-
-                {/* ✨ 상태/우선순위 표시 */}
                 <TaskBottomLine>
-                  <StatusPill
-                    color={getStatusStyle(task.status).color}
-                    bgColor={getStatusStyle(task.status).bgColor}
-                  >
-                    {task.status}
+                  <StatusPill color={getStatusStyle(task.taskStatus).color} bgColor={getStatusStyle(task.taskStatus).bgColor}>
+                    {task.taskStatus}
                   </StatusPill>
-                  <PriorityPill
-                    color={getPriorityStyle(task.priority).color}
-                    bgColor={getPriorityStyle(task.priority).bgColor}
-                  >
-                    {task.priority}
+                  <PriorityPill color={getPriorityStyle(task.taskUrgency).color} bgColor={getPriorityStyle(task.taskUrgency).bgColor}>
+                    {task.taskUrgency}
                   </PriorityPill>
                 </TaskBottomLine>
               </TaskItemRow>
             ))}
           </TaskListWrapper>
+          {/* ✅ Pagination 컴포넌트 추가 */}
+          <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
         </ContentWrapper>
       </Container>
 
-      {/* 새 일감 모달 */}
       {isModalOpen && <NewTaskModal onClose={() => setIsModalOpen(false)} onSave={handleAddTask} />}
-
-      {/* 상세보기 모달 */}
       {selectedTask && (
         <TaskDetailModal
           task={selectedTask}
@@ -535,8 +570,5 @@ function TaskMain() {
     </>
   );
 }
-
-
-
 
 export default TaskMain;

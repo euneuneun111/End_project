@@ -13,8 +13,8 @@ export const login = async (user_id, user_pwd) => {
   params.append("user_pwd", user_pwd);
 
   try {
-    const res = await api.post("/login/post", params); // Security 가로채는 URL
-    return { success: true }; // Security가 리다이렉션 후 반환
+    const res = await api.post("/login", params); // Security 가로채는 URL
+    return res.data; // Security가 리다이렉션 후 반환
   } catch (error) {
     console.error("로그인 요청 실패", error);
     return { success: false, message: "로그인 실패" };

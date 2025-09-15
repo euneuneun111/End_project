@@ -1,10 +1,50 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ProjectHeader from "../../header/ProjectHeader";
+import axios from 'axios';
+import Pagination from './Pagination';
+import Select from 'react-select'; // ✅ 1. react-select 라이브러리 import
 
+// ✅ 2. 드롭다운에 사용할 옵션 데이터를 미리 정의합니다.
+const statusOptions = [
+  { value: '진행 중', label: '진행 중' },
+  { value: '완료', label: '완료' },
+  { value: '검토 중', label: '검토 중' },
+  { value: '대기 중', label: '대기 중' },
+];
 
+const urgencyOptions = [
+  { value: '긴급', label: '긴급' },
+  { value: '높음', label: '높음' },
+  { value: '보통', label: '보통' },
+  { value: '낮음', label: '낮음' },
+];
+
+// ✅ 3. react-select 컴포넌트의 스타일을 기존 디자인과 유사하게 맞춥니다.
+const customStyles = {
+  control: (provided) => ({
+    ...provided,
+    border: '1px solid #ccc',
+    borderRadius: '6px',
+    padding: '2px',
+    fontSize: '14px',
+    boxShadow: 'none',
+    '&:hover': { borderColor: '#888' }
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#7c3aed' : state.isFocused ? '#f3e8ff' : 'white',
+    color: state.isSelected ? 'white' : '#333',
+    fontSize: '14px',
+  }),
+  menu: (provided) => ({
+    ...provided,
+    zIndex: 2 // 모달 내에서 다른 요소 위에 보이도록 설정
+  })
+};
 // --- 모달 공통 스타일 ---
-const ModalOverlay = styled.div`
+const ModalOverlay = styled.div`      
   position: fixed;
   top: 0;
   left: 0;
@@ -54,6 +94,7 @@ const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
+  position: relative;
 `;
 
 const FormLabel = styled.label`
@@ -130,74 +171,50 @@ const DeleteButton = styled.button`
 `;
 
 // --- 새 이슈 모달 ---
-function NewIssueModal({ onClose, onSave }) {
+function NewIssueModal({ onClose, onSave, taskList }) {
   const [form, setForm] = useState({
-    title: "",
-    status: "",
-    description: "",
-    priority: "",
-    reporter: ""
+    issueTitle: "", issueContent: "",
+    issueStatus: "대기 중", issueUrgency: "보통",
+    taskId: ""
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  
+  // ✅ 4. react-select의 onChange 이벤트를 처리할 별도의 핸들러
+  const handleSelectChange = (selectedOption, actionMeta) => {
+    setForm({ ...form, [actionMeta.name]: selectedOption.value });
   };
+  
+  // Task 목록도 react-select 형식으로 변환
+  const taskOptions = taskList.map(task => ({
+    value: task.taskId,
+    label: `${task.taskId} - ${task.taskTitle}`
+  }));
 
-  const handleSubmit = () => {
-    onSave(form);
-  };
+  const handleSubmit = () => onSave(form);
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
-        <ModalHeader>
-          <h2>새 이슈 생성</h2>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
-        </ModalHeader>
-
+        <ModalHeader><h2>새 이슈 생성</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
+        <FormGroup><FormLabel>이슈 제목</FormLabel><FormInput name="issueTitle" value={form.issueTitle} onChange={handleChange} /></FormGroup>
+        <FormGroup><FormLabel>이슈 설명</FormLabel><FormTextarea name="issueContent" value={form.issueContent} onChange={handleChange} /></FormGroup>
+        
+        {/* ✅ 5. 기존 FormSelect를 Select 컴포넌트로 교체 */}
         <FormGroup>
-          <FormLabel>이슈 제목</FormLabel>
-          <FormInput name="title" value={form.title} onChange={handleChange} />
+          <FormLabel>연결할 일감</FormLabel>
+          <Select name="taskId" styles={customStyles} options={taskOptions} onChange={handleSelectChange} placeholder="일감 선택..."/>
         </FormGroup>
-
-        <FormGroup>
-          <FormLabel>이슈 설명</FormLabel>
-          <FormTextarea name="description" value={form.description} onChange={handleChange} />
-        </FormGroup>
-
         <FormGroup>
           <FormLabel>이슈 상태</FormLabel>
-          <FormSelect name="status" value={form.status} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="Ongoing">Ongoing</option>
-            <option value="Completed">Completed</option>
-            <option value="Pending">Pending</option>
-          </FormSelect>
+          <Select name="issueStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.issueStatus)}/>
         </FormGroup>
-
         <FormGroup>
           <FormLabel>우선순위</FormLabel>
-          <FormSelect name="priority" value={form.priority} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="Critical">Critical</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Minor">Minor</option>
-          </FormSelect>
+          <Select name="issueUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.issueUrgency)}/>
         </FormGroup>
-
-        <FormGroup>
-          <FormLabel>보고자</FormLabel>
-          <FormSelect name="reporter" value={form.reporter} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="홍길동">홍길동</option>
-            <option value="김철수">김철수</option>
-          </FormSelect>
-        </FormGroup>
-
-        <ModalFooter>
-          <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
-          <DeleteButton onClick={onClose}>× 취소</DeleteButton>
-        </ModalFooter>
+        
+        <ModalFooter><SaveButton onClick={handleSubmit}>+ 등록</SaveButton><DeleteButton onClick={onClose}>× 취소</DeleteButton></ModalFooter>
       </ModalWrapper>
     </ModalOverlay>
   );
@@ -206,59 +223,35 @@ function NewIssueModal({ onClose, onSave }) {
 // --- 이슈 상세 모달 ---
 function IssueDetailModal({ issue, onClose, onUpdate, onDelete }) {
   const [form, setForm] = useState(issue);
+  useEffect(() => { setForm(issue); }, [issue]);
+  
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleSelectChange = (selectedOption, actionMeta) => {
+    setForm({ ...form, [actionMeta.name]: selectedOption.value });
   };
+  
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
-        <ModalHeader>
-          <h2>이슈 상세보기</h2>
-          <CloseButton onClick={onClose}>&times;</CloseButton>
-        </ModalHeader>
-
-        <FormGroup>
-          <FormLabel>이슈 제목</FormLabel>
-          <FormInput name="title" value={form.title} onChange={handleChange} />
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>이슈 설명</FormLabel>
-          <FormTextarea name="description" value={form.description} onChange={handleChange} />
-        </FormGroup>
-
+        <ModalHeader><h2>이슈 상세보기</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
+        <FormGroup><FormLabel>이슈 제목</FormLabel><FormInput name="issueTitle" value={form.issueTitle} onChange={handleChange} /></FormGroup>
+        <FormGroup><FormLabel>연결된 일감</FormLabel><FormInput name="taskTitle" value={form.taskTitle || "연결된 일감 없음"} readOnly style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}/></FormGroup>
+        <FormGroup><FormLabel>이슈 설명</FormLabel><FormTextarea name="issueContent" value={form.issueContent} onChange={handleChange} /></FormGroup>
+        <FormGroup><FormLabel>담당자</FormLabel><FormInput name="issueManagerId" value={form.issueManagerId || "담당자 없음"} readOnly style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}/></FormGroup>
+        
+        {/* ✅ 6. 상세 모달도 Select 컴포넌트로 교체 */}
         <FormGroup>
           <FormLabel>이슈 상태</FormLabel>
-          <FormSelect name="status" value={form.status} onChange={handleChange}>
-            <option value="Ongoing">Ongoing</option>
-            <option value="Completed">Completed</option>
-            <option value="Pending">Pending</option>
-          </FormSelect>
+          <Select name="issueStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.issueStatus)}/>
         </FormGroup>
-
         <FormGroup>
           <FormLabel>우선순위</FormLabel>
-          <FormSelect name="priority" value={form.priority} onChange={handleChange}>
-            <option value="Critical">Critical</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Minor">Minor</option>
-          </FormSelect>
+          <Select name="issueUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.issueUrgency)}/>
         </FormGroup>
-
-        <FormGroup>
-          <FormLabel>보고자</FormLabel>
-          <FormSelect name="reporter" value={form.reporter} onChange={handleChange}>
-            <option value="홍길동">홍길동</option>
-            <option value="김철수">김철수</option>
-          </FormSelect>
-        </FormGroup>
-
-        <ModalFooter>
-          <SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton>
-          <DeleteButton onClick={() => onDelete(issue.id)}>🗑 삭제</DeleteButton>
-        </ModalFooter>
+        
+        <ModalFooter><SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton><DeleteButton onClick={() => onDelete(issue.issueId)}>🗑 삭제</DeleteButton></ModalFooter>
       </ModalWrapper>
     </ModalOverlay>
   );
@@ -369,22 +362,35 @@ const StatusPill = styled.span`
 
 const PriorityPill = styled(StatusPill)``;
 
-// --- 스타일 헬퍼 ---
 const getStatusStyle = (status) => {
   switch (status) {
-    case 'Ongoing': return { color: '#4f46e5', bgColor: '#e0e7ff' };
-    case 'Completed': return { color: '#16a34a', bgColor: '#dcfce7' };
-    case 'Pending': return { color: '#c2410c', bgColor: '#ffedd5' };
+    case '진행 중': return { color: '#4f46e5', bgColor: '#e0e7ff' };   // 기존 Ongoing
+    case '완료': return { color: '#16a34a', bgColor: '#dcfce7' };     // 기존 Completed
+    case '대기 중': return { color: '#c2410c', bgColor: '#ffedd5' };   // 기존 Pending
+    case '검토 중': return { color: '#9333ea', bgColor: '#f3e8ff' };   // '검토 중' 새로 추가 (보라색 계열)
     default: return { color: '#64748b', bgColor: '#f8fafc' };
   }
 };
 
 const getPriorityStyle = (priority) => {
   switch (priority) {
-    case 'Critical': return { color: '#dc2626', bgColor: '#fee2e2' };
-    case 'Moderate': return { color: '#2563eb', bgColor: '#dbeafe' };
-    case 'Minor': return { color: '#65a30d', bgColor: '#ecfccb' };
-    default: return { color: '#64748b', bgColor: '#f8fafc' };
+    case '긴급':
+    case 'Critical':
+      return { color: '#dc2626', bgColor: '#fee2e2' };
+    
+    case '높음':
+      return { color: '#c2410c', bgColor: '#ffedd5' };
+
+    case '보통':
+    case 'Moderate':
+      return { color: '#2563eb', bgColor: '#dbeafe' };
+
+    case '낮음':
+    case 'Minor':
+      return { color: '#65a30d', bgColor: '#ecfccb' };
+
+    default: 
+      return { color: '#64748b', bgColor: '#f8fafc' };
   }
 };
 
@@ -392,7 +398,7 @@ const ContentWrapper = styled.div`
   width: 100%;
   background-color: #ffffff;
   border-radius: 12px;
-  padding: 20px 15px;
+  padding: 20px 15px 90px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 
   display: flex;
@@ -407,37 +413,103 @@ const IssueListWrapper = styled.div`
 
 // --- 메인 ---
 function IssueMain() {
-  const [issues, setIssues] = useState([
-    { id: 'ISS-1', title: '샘플 이슈', status: 'Ongoing', priority: 'Moderate', description: '샘플 설명', reporter: '홍길동' }
-  ]);
+  //  useState를 빈 배열로 초기화 (서버에서 데이터를 받아올 것이므로)
+  const [issues, setIssues] = useState([]);
+  const [taskList, setTaskList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
+  const [pageMaker, setPageMaker] = useState(null);
+  const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID를 동적으로 받아오도록 수정
 
-  // 새 이슈 추가
-  const handleAddIssue = (newIssue) => {
-    setIssues([...issues, { ...newIssue, id: `ISS-${issues.length + 1}` }]);
-    setIsModalOpen(false);
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get(`/project/main/project/api/${projectId}/tasks`);
+      setTaskList(response.data.taskList || []);
+    } catch (error) {
+      console.error("일감 목록을 불러오는 데 실패했습니다.", error);
+      setTaskList([]);
+    }
   };
 
-  // 이슈 수정
-  const handleUpdateIssue = (updatedIssue) => {
-    setIssues(issues.map(issue => issue.id === updatedIssue.id ? updatedIssue : issue));
-    setSelectedIssue(null);
+  //  (1) 이슈 목록을 서버에서 불러오는 함수
+  const fetchIssues = async (page = 1) => {
+    try {
+      // ✅ 4. axios 요청에 page 파라미터 추가
+      const response = await axios.get(`/project/main/project/api/${projectId}/issues`, {
+        params: { page }
+      });
+      if (response.data) {
+        setIssues(response.data.issueList || []);
+        setPageMaker(response.data.pageMaker);
+      }
+    } catch (error) {
+      console.error("이슈 목록을 불러오는 데 실패했습니다.", error);
+    }
   };
 
-  // 이슈 삭제
-  const handleDeleteIssue = (issueId) => {
-    setIssues(issues.filter(issue => issue.id !== issueId));
-    setSelectedIssue(null);
+  useEffect(() => {
+    fetchIssues(1);
+    fetchTasks(); // Task 목록도 함께 불러오도록 추가
+  }, []);
+
+  const handlePageChange = (page) => {
+    fetchIssues(page);
+  };
+
+  const handleAddIssue = async (newIssue) => {
+    try {
+      // ✅ axios 요청에 withCredentials: true 옵션을 추가합니다.
+      await axios.post(
+        `/project/main/project/${projectId}/issuelist`, 
+        newIssue,
+        { withCredentials: true } // ✨ 이 옵션이 핵심입니다!
+      );
+      
+      alert("새로운 이슈가 등록되었습니다.");
+      setIsModalOpen(false);
+      fetchIssues();
+    } catch (error) {
+      console.error("이슈 생성에 실패했습니다.", error);
+      alert("이슈 생성 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleUpdateIssue = async (updatedIssue) => {
+    try {
+      await axios.put(`/project/main/project/issue/update`, updatedIssue);
+      
+      alert("이슈가 수정되었습니다.");
+      setSelectedIssue(null);
+      
+      // ✅ 수정 성공 후, 목록 전체를 다시 불러옴
+      // 현재 페이지 정보를 알고 있다면 해당 페이지를, 모른다면 첫 페이지를 불러옵니다.
+      fetchIssues(pageMaker ? pageMaker.page : 1); 
+
+    } catch (error) {
+      console.error("이슈 수정에 실패했습니다.", error);
+      alert("이슈 수정 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleDeleteIssue = async (issueId) => {
+    if (window.confirm("정말로 이 이슈를 삭제하시겠습니까?")) {
+      try {
+        await axios.delete(`/project/main/project/issue/${issueId}`);
+        alert("이슈가 삭제되었습니다.");
+        setSelectedIssue(null);
+        fetchIssues();
+      } catch (error) {
+        console.error("이슈 삭제에 실패했습니다.", error);
+        alert("이슈 삭제 중 오류가 발생했습니다.");
+      }
+    }
   };
 
   return (
     <>
       <Container>
-
         <ContentWrapper>
-                  <ProjectHeader />
-
+          <ProjectHeader />
           <Header>
             <TitleSection>
               <Title>이슈</Title>
@@ -445,41 +517,42 @@ function IssueMain() {
             </TitleSection>
             <NewIssueButton onClick={() => setIsModalOpen(true)}>+ 새 이슈</NewIssueButton>
           </Header>
-
           <IssueListWrapper>
+            {/* ✅ DTO 필드명에 맞게 수정 (id -> issueId, title -> issueTitle 등) */}
             {issues.map((issue) => (
-              <IssueItemRow key={issue.id} onClick={() => setSelectedIssue(issue)}>
+              <IssueItemRow key={issue.issueId} onClick={() => setSelectedIssue(issue)}>
                 <IssueTopLine>
                   <IssueInfo>
-                    <IssueId>{issue.id}</IssueId>
-                    <IssueTitle>{issue.title}</IssueTitle>
+                    <IssueId>{issue.issueId}</IssueId>
+                    <IssueTitle>{issue.issueTitle}</IssueTitle>
                   </IssueInfo>
                 </IssueTopLine>
-
                 <IssueBottomLine>
                   <StatusPill
-                    color={getStatusStyle(issue.status).color}
-                    bgColor={getStatusStyle(issue.status).bgColor}
+                    color={getStatusStyle(issue.issueStatus).color}
+                    bgColor={getStatusStyle(issue.issueStatus).bgColor}
                   >
-                    {issue.status}
+                    {issue.issueStatus}
                   </StatusPill>
                   <PriorityPill
-                    color={getPriorityStyle(issue.priority).color}
-                    bgColor={getPriorityStyle(issue.priority).bgColor}
+                    color={getPriorityStyle(issue.issueUrgency).color}
+                    bgColor={getPriorityStyle(issue.issueUrgency).bgColor}
                   >
-                    {issue.priority}
+                    {issue.issueUrgency}
                   </PriorityPill>
                 </IssueBottomLine>
               </IssueItemRow>
             ))}
           </IssueListWrapper>
+          <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
         </ContentWrapper>
       </Container>
-
-      {/* 새 이슈 모달 */}
-      {isModalOpen && <NewIssueModal onClose={() => setIsModalOpen(false)} onSave={handleAddIssue} />}
-
-      {/* 상세보기 모달 */}
+      
+      {isModalOpen && <NewIssueModal 
+      onClose={() => setIsModalOpen(false)} 
+      onSave={handleAddIssue} 
+      taskList={taskList} />}
+      
       {selectedIssue && (
         <IssueDetailModal
           issue={selectedIssue}
