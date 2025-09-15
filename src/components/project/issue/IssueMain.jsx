@@ -6,6 +6,7 @@ import axios from 'axios';
 import Pagination from './Pagination';
 import Select from 'react-select'; // ✅ 1. react-select 라이브러리 import
 
+
 // ✅ 2. 드롭다운에 사용할 옵션 데이터를 미리 정의합니다.
 const statusOptions = [
   { value: '진행 중', label: '진행 중' },
@@ -398,7 +399,7 @@ const ContentWrapper = styled.div`
   width: 100%;
   background-color: #ffffff;
   border-radius: 12px;
-  padding: 20px 15px 90px;
+  padding: 15px 15px 90px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 
   display: flex;

@@ -429,7 +429,7 @@ const ContentWrapper = styled.div`
   width: 100%;
   background-color: #ffffff;
   border-radius: 12px;
-  padding: 20px 15px 90px;
+  padding: 15px 15px 90px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 
   display: flex;

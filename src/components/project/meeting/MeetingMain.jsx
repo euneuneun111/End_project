@@ -5,7 +5,7 @@ import ProjectHeader from "../../header/ProjectHeader";
 
 const Container = styled.div`
   width: 100%;
-  padding: 8px;
+  padding: 16px;
   font-family: "Poppins", sans-serif;
   background-color: #fafafa;
   min-height: 100px;
