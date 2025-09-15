@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+
 
 const Container = styled.div`
   width: 95%;
@@ -12,12 +14,34 @@ const Container = styled.div`
   font-family: 'Poppins', sans-serif;
 `;
 
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 가운데 정렬 */
+  position: relative;
+  margin-bottom: 24px;
+`;
+
 const Title = styled.h2`
   font-size: 1.8rem;
   font-weight: 600;
   text-align: center;
   color: #4287c4;
-  margin-bottom: 24px;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  left: 0;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+
+  &:hover {
+    color: #000;
+  }
 `;
 
 const Form = styled.form`
@@ -153,6 +177,8 @@ function ProjectCreate() {
   const [members, setMembers] = useState([]);
   const [images, setImages] = useState([]);
   const fileInputRef = React.useRef(null);
+  const navigate = useNavigate();
+
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -177,7 +203,11 @@ function ProjectCreate() {
 
   return (
     <Container>
-      <Title>프로젝트 생성</Title>
+       <Header>
+        <CloseButton onClick={() => navigate(-1)}>×</CloseButton>
+        <Title>프로젝트 생성</Title>
+      </Header>
+
       <Form onSubmit={handleSubmit}>
 
         {/* 이미지 업로드 */}

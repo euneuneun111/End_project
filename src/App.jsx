@@ -25,7 +25,8 @@ function App() {
       <GlobalStyle />
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login />} />  {/* 로그인 페이지 */}
+          <Route path="/" element={<Login />} />       {/* 기본 경로: 로그인 */}
+          <Route path="/login" element={<Login />} />  {/* /login 도 로그인 */}
           <Route path="/*" element={<LinkedMain />} /> {/* 로그인 후 들어갈 메인 */}
         </Routes>
       </BrowserRouter>
