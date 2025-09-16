@@ -1,7 +1,8 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import ProjectHeader from "../../header/ProjectHeader";
+import axios from "axios";
 
 const Container = styled.div`
   width: 100%;
@@ -122,19 +123,31 @@ const Pagination = styled.div`
 
 function ReportMain() {
   const navigate = useNavigate();
+  const [reports, setReports] = useState([]); // 서버 데이터 저장
+  const [loading, setLoading] = useState(true); // 로딩 상태
+  const [error, setError] = useState(null); // 에러 상태
 
-  // 샘플 데이터 (id 추가)
-  const reports = [...Array(8)].map((_, i) => ({
-    id: i + 1,
-    date: "2025-09-04",
-    content: `업무 보고 내용 ${i + 1} - 길어질 경우 말줄임 처리됩니다.`,
-    author: "홍길동",
-    status: "미확인",
-  }));
+  // 서버에서 보고서 데이터 가져오기
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await axios.get("/project/organization/report/list"); 
+        console.log("서버응답:", response.data); //응답데이터
+        setReports(response.data);
+      } catch (err) {
+        console.log("데이터가져오기 실패:", err); //에러 로그
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
 
   return (
     <Container>
-             <ProjectHeader />
+            <ProjectHeader />
 
       {/* 상단 바 */}
       <TopBar>
@@ -146,6 +159,10 @@ function ReportMain() {
         </UserSelect>
         <Button onClick={() => navigate("/report/create")}>보고 작성</Button>
       </TopBar>
+
+            {/* 데이터 상태 */}
+            {loading && <p>불러오는 중...</p>}
+            {error && <p style={{ color: "red" }}>에러 발생: {error}</p>}
 
       {/* 테이블 */}
       <TableWrapper>
@@ -159,16 +176,17 @@ function ReportMain() {
             </tr>
           </thead>
           <tbody>
+
             {reports.map((report) => (
               <Tr
-                key={report.id}
-                onClick={() => navigate(`/report/detail/${report.id}`)} // ReportDetail로 이동
+                key={report.rno}
+                onClick={() => navigate(`/report/detail/${report.rno}`)} // ReportDetail로 이동
                 style={{ cursor: "pointer" }}
               >
-                <Td>{report.date}</Td>
+                <Td>{new Date(report.regDate).toLocaleDateString()}</Td>
                 <Td>{report.content}</Td>
-                <Td>{report.author}</Td>
-                <Td>{report.status}</Td>
+                <Td>{report.writer}</Td>
+                <Td>{report.check}</Td>
               </Tr>
             ))}
           </tbody>

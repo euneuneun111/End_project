@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // ✅ Styled Components
 const Container = styled.div`
@@ -89,9 +90,10 @@ function ReportCreate() {
   const today = new Date().toISOString().split("T")[0];
 
   const [form, setForm] = useState({
-    date: today,
-    author: "",
+    regDate: today,
+    writer: "",
     content: "",
+    title:"",
   });
 
   const handleChange = (e) => {
@@ -99,11 +101,24 @@ function ReportCreate() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("보고 작성 데이터:", form);
-    alert("보고가 저장되었습니다!");
-    navigate("/report");
+
+    try {
+      const response = await axios.post(
+        "/project/organization/report/regist", //백엔드 URL
+        form, //JSON 전송
+        {
+          headers: {"Content-Type":"application/json"},
+        }
+      );
+      console.log("서버응답:",response.data);
+      alert("보고가 저장되었습니다.");
+      navigate("/report/Main");
+    } catch (err) {
+      console.error("보고 저장 실패:",err);
+      alert("보고 저장 중 오류 발생");
+    }
   };
 
   return (
@@ -113,15 +128,15 @@ function ReportCreate() {
         <Row>
           <FormGroup>
             <Label>작성 날짜</Label>
-            <Input type="date" name="date" value={form.date} readOnly />
+            <Input type="regDate" name="regDate" value={form.regDate} readOnly />
           </FormGroup>
 
           <FormGroup>
             <Label>작성자</Label>
             <Input
               type="text"
-              name="author"
-              value={form.author}
+              name="writer"
+              value={form.writer}
               onChange={handleChange}
               required
             />
@@ -139,7 +154,7 @@ function ReportCreate() {
         </FormGroup>
 
         <ButtonGroup>
-          <Button type="button" cancel onClick={() => navigate("/report/Main")}>
+          <Button type="button" cancel="true" onClick={() => navigate("/report/Main")}>
             취소
           </Button>
           <Button type="submit">저장</Button>

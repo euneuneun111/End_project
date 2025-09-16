@@ -1,7 +1,8 @@
 // ReportDetail.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "axios";
 
 const Container = styled.div`
   width: 100%;
@@ -72,14 +73,31 @@ function ReportDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // 예시 데이터 (실제 프로젝트에서는 API 호출)
-  const report = {
-    id,
-    date: "2025-09-04",
-    author: "홍길동",
-    status: "미확인",
-    content: `업무 보고 상세 내용 ${id}입니다. 실제 데이터는 API나 상태관리(store)에서 가져옵니다. 길어질 경우 내용이 길어져도 스크롤 됩니다.`
-  };
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(()=> {
+    const fetchReport = async () => {
+      try {
+        const response = await axios.get("/project/organization/report/detail",{
+          params: {rno:id},
+          headers: {Accept: "application/json"},
+        });
+        setReport(response.data);
+      } catch (err){
+        console.error("데이터 가져오기 실패:", err);
+        setError("데이터를 가져오는 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, [id]);
+
+  if(loading) return <div>로딩 중...</div>;
+  if(error) return <div>{error}</div>;
+  if(!report) return <div>보고서를 찾을 수 없습니다.</div>;
 
   return (
     <Container>
@@ -92,9 +110,9 @@ function ReportDetail() {
       </ActionBar>
 
       <Title>보고서 상세</Title>
-      <Info><span>작성 날짜:</span> {report.date}</Info>
-      <Info><span>작성자:</span> {report.author}</Info>
-      <Info><span>상태:</span> {report.status}</Info>
+      <Info><span>작성 날짜:</span> {new Date(report.regDate).toLocaleDateString()}</Info>
+      <Info><span>작성자:</span> {report.writer}</Info>
+      <Info><span>상태:</span> {report.check}</Info>
       <Content>{report.content}</Content>
 
       {/* 하단 확인 버튼 */}
