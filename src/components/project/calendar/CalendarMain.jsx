@@ -29,26 +29,20 @@ function CalendarMain() {
   const [events, setEvents] = useState([]);
   const [animationClass, setAnimationClass] = useState('');
 
-  // ✅ 1. 서버에서 모든 일정을 가져오는 함수
   const fetchEvents = async () => {
     try {
-      const response = await axios.get('/project/main/calendar/all', { 
-        withCredentials: true // ✅ GET 요청에 쿠키 포함
-      });
-      // ✅ 서버로부터 받은 데이터가 배열인지 확인합니다.
-    if (Array.isArray(response.data)) {
-      setEvents(response.data); // 배열이 맞으면 상태를 업데이트합니다.
-    } else {
-      console.error("서버로부터 배열 형태의 데이터를 받지 못했습니다:", response.data);
-      setEvents([]); // 배열이 아니면 빈 배열로 초기화하여 오류를 방지합니다.
+      const response = await axios.get('/project/main/calendar/all', { withCredentials: true });
+      if (Array.isArray(response.data)) {
+        setEvents(response.data);
+      } else {
+        setEvents([]);
+      }
+    } catch (error) {
+      console.error("일정을 불러오는 데 실패했습니다.", error);
+      setEvents([]);
     }
-  } catch (error) {
-    console.error("일정을 불러오는 데 실패했습니다.", error);
-    setEvents([]); // 에러 발생 시에도 빈 배열로 초기화
-  }
-};
+  };
 
-  // ✅ 기존 useEffect 내용을 fetchEvents() 호출로 교체
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -101,16 +95,16 @@ function CalendarMain() {
   };
 
   const handleEventClick = (clickInfo) => {
-    setModalMode('detail');
-    setSelectedEvent({
-      id: clickInfo.event.id,
-      title: clickInfo.event.title,
-      start: clickInfo.event.startStr,
-      end: clickInfo.event.endStr,
-      ...clickInfo.event.extendedProps,
-    });
-    setIsModalOpen(true);
+    const eventId = clickInfo.event.id;
+    const originalEvent = events.find(event => event.id === eventId);
+    
+    if (originalEvent) {
+      setModalMode('detail');
+      setSelectedEvent(originalEvent);
+      setIsModalOpen(true);
+    }
   };
+  
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -132,7 +126,7 @@ function CalendarMain() {
         await axios.put('/project/main/calendar/update', calendarDto, { withCredentials: true });
         alert('일정이 성공적으로 수정되었습니다.'); // ✅ 수정 완료 알림
       } else {
-        await axios.post('/project/main/calendar', calendarDto, { withCredentials: true });
+        await axios.post('/project/main/calendar/add', calendarDto, { withCredentials: true });
         alert('일정이 성공적으로 등록되었습니다.'); // ✅ 등록 완료 알림
       }
       fetchEvents();

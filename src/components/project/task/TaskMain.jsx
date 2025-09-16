@@ -461,12 +461,19 @@ function TaskMain() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [pageMaker, setPageMaker] = useState(null); // ✅ 페이지네이션 상태 추가
+  const [keyword, setKeyword] = useState("");
   const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID
 
   // ✅ 일감 목록을 서버에서 불러오는 함수
-  const fetchTasks = async (page = 1) => {
+  const fetchTasks = async (page = 1, searchKeyword = "") => {
     try {
-      const response = await axios.get(`/project/main/project/api/${projectId}/tasks`, { params: { page } });
+      const response = await axios.get(`/project/main/project/api/${projectId}/tasks`, {
+        params: { 
+          page: page,
+          keyword: searchKeyword // ✅ API 요청에 검색어 추가
+        },
+        withCredentials: true
+      });
       if (response.data) {
         setTasks(response.data.taskList || []);
         setPageMaker(response.data.pageMaker);
@@ -474,19 +481,29 @@ function TaskMain() {
     } catch (error) { console.error("일감 목록 로딩 실패:", error); }
   };
 
-  // ✅ 컴포넌트 로드 시 일감 목록 불러오기
-  useEffect(() => { fetchTasks(1); }, []);
+  useEffect(() => {
+    fetchTasks(1, ""); // ✅ 처음에는 검색어 없이 로드
+  }, []);
   
-  // ✅ 페이지 변경 핸들러
-  const handlePageChange = (page) => { fetchTasks(page); };
+  const handlePageChange = (page) => {
+    fetchTasks(page, keyword); // ✅ 페이지 이동 시에도 현재 검색어 유지
+  };
+
+  // ✅ 3. 검색창에서 Enter 키를 눌렀을 때 실행될 핸들러 추가
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      fetchTasks(1, keyword); // 검색 시에는 항상 1페이지부터 조회
+    }
+  };
 
   // ✅ 새 일감 추가 (API 연동)
   const handleAddTask = async (newTask) => {
     try {
-      await axios.post(`/project/main/project/${projectId}/tasklist`, newTask);
+      await axios.post(`/project/main/project/${projectId}/tasklist`, newTask, { withCredentials: true });
       alert("새로운 일감이 등록되었습니다.");
       setIsModalOpen(false);
-      fetchTasks(1);
+      setKeyword(""); // ✅ 검색어 초기화
+      fetchTasks(1, ""); // ✅ 전체 목록 새로고침
     } catch (error) {
       console.error("일감 생성 실패:", error);
       // ✅ 사용자에게 실패 알림을 보여주는 코드 추가
@@ -529,7 +546,15 @@ function TaskMain() {
         <ContentWrapper>
           <ProjectHeader />
           <Header>
-            <TitleSection><Title>일감</Title><SearchInput placeholder="일감 검색" /></TitleSection>
+            <TitleSection>
+              <Title>일감</Title>
+            <SearchInput 
+                placeholder="일감 검색"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={handleSearch}
+              />
+              </TitleSection>
             <NewTaskButton onClick={() => setIsModalOpen(true)}>+ 새 일감</NewTaskButton>
           </Header>
           <TaskListWrapper>

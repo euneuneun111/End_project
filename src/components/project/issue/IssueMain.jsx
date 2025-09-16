@@ -420,6 +420,7 @@ function IssueMain() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [pageMaker, setPageMaker] = useState(null);
+  const [keyword, setKeyword] = useState("");
   const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID를 동적으로 받아오도록 수정
 
   const fetchTasks = async () => {
@@ -433,11 +434,14 @@ function IssueMain() {
   };
 
   //  (1) 이슈 목록을 서버에서 불러오는 함수
-  const fetchIssues = async (page = 1) => {
+  const fetchIssues = async (page = 1, searchKeyword = "") => {
     try {
-      // ✅ 4. axios 요청에 page 파라미터 추가
       const response = await axios.get(`/project/main/project/api/${projectId}/issues`, {
-        params: { page }
+        params: { 
+          page: page,
+          keyword: searchKeyword // ✅ API 요청에 검색어 추가
+        },
+        withCredentials: true
       });
       if (response.data) {
         setIssues(response.data.issueList || []);
@@ -449,26 +453,28 @@ function IssueMain() {
   };
 
   useEffect(() => {
-    fetchIssues(1);
-    fetchTasks(); // Task 목록도 함께 불러오도록 추가
+    fetchIssues(1, ""); // ✅ 처음에는 검색어 없이 로드
+    fetchTasks();
   }, []);
 
   const handlePageChange = (page) => {
-    fetchIssues(page);
+    fetchIssues(page, keyword); // ✅ 페이지 이동 시에도 현재 검색어 유지
+  };
+
+  // ✅ 3. 검색창에서 Enter 키를 눌렀을 때 실행될 핸들러 추가
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      fetchIssues(1, keyword); // 검색 시에는 항상 1페이지부터 조회
+    }
   };
 
   const handleAddIssue = async (newIssue) => {
     try {
-      // ✅ axios 요청에 withCredentials: true 옵션을 추가합니다.
-      await axios.post(
-        `/project/main/project/${projectId}/issuelist`, 
-        newIssue,
-        { withCredentials: true } // ✨ 이 옵션이 핵심입니다!
-      );
-      
+      await axios.post(`/project/main/project/${projectId}/issuelist`, newIssue, { withCredentials: true });
       alert("새로운 이슈가 등록되었습니다.");
       setIsModalOpen(false);
-      fetchIssues();
+      setKeyword(""); // ✅ 검색어 초기화
+      fetchIssues(1, ""); // ✅ 전체 목록 새로고침
     } catch (error) {
       console.error("이슈 생성에 실패했습니다.", error);
       alert("이슈 생성 중 오류가 발생했습니다.");
@@ -514,7 +520,12 @@ function IssueMain() {
           <Header>
             <TitleSection>
               <Title>이슈</Title>
-              <SearchInput placeholder="이슈 검색" />
+              <SearchInput 
+                placeholder="이슈 검색" 
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={handleSearch}
+              />
             </TitleSection>
             <NewIssueButton onClick={() => setIsModalOpen(true)}>+ 새 이슈</NewIssueButton>
           </Header>

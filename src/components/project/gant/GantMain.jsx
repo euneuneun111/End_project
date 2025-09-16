@@ -1,30 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import ProjectHeader from "../../header/ProjectHeader";
+import axios from 'axios';
+import CalendarHeader from "../calendar/CalendarHeader"; 
 
 
 // ---------------- 스타일 (기존 코드에서 변경 없음) ----------------
 const Wrapper = styled.div`
   width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  position: relative;
-`;
-
-const FixedButton = styled.button`
-  margin-left:20px;
-  position: sticky;
-  top: 10px;
-  z-index: 10;
-  margin-bottom: 12px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background: #3b82f6;
-  color: white;
-  font-size: 13px;
-  cursor: pointer;
-  &:hover { background: #2563eb; }
+  padding: 16px;
+  font-family: "Poppins", sans-serif;
+  background-color: #fafafa;
+  min-height: 100vh;
+  box-sizing: border-box;
 `;
 
 const Container = styled.div`
@@ -53,7 +41,7 @@ const MonthCell = styled.div`
   border-right: 1px solid #e5e7eb;
 `;
 
-const CalendarHeader = styled.div`
+const CalendarHeader11 = styled.div`
   display: grid;
   grid-template-columns: repeat(${({ days }) => days}, 40px);
   text-align: center;
@@ -105,107 +93,62 @@ const Task = styled.div`
   ${({ color }) => `background: ${color};`}
 `;
 
-// ---------------- 모달 (여기부터 수정) ----------------
-const ModalOverlay = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000; /* 모달이 다른 요소들 위에 확실히 뜨도록 z-index 높임 */
-`;
-
-const ModalBox = styled.div`
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  width: 320px; /* 모달 너비를 좀 더 확보 */
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-
-  /* ✅ Flexbox를 사용하여 내부 요소들을 세로로 정렬하고 간격 부여 */
+const DetailModalContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px; /* 요소들 사이의 간격 */
+  gap: 15px;
 `;
-
-const ModalHeader = styled.h3`
-  margin-top: 0;
-  margin-bottom: 5px; /* 제목 아래 여백 줄임 */
-  color: #333;
-  font-size: 1.2em;
-  border-bottom: 1px solid #eee; /* 제목 아래 구분선 추가 */
-  padding-bottom: 10px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column; /* 기본적으로 세로 정렬 */
-  gap: 8px; /* 입력 필드들 사이의 간격 */
-`;
-
-const Input = styled.input`
-  width: 100%; /* 너비를 100%로 설정하여 가득 채움 */
-  padding: 8px 10px; /* 패딩 조정 */
-  border: 1px solid #d1d5db;
-  border-radius: 5px; /* 둥근 모서리 */
+const DetailField = styled.div`
   font-size: 14px;
-  box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
-
-  /* 날짜 타입 인풋 아이콘 위치 조정 */
-  &[type="date"] {
-    position: relative;
-    padding-right: 35px; /* 달력 아이콘 공간 확보 */
+  & > strong {
+    display: inline-block;
+    width: 80px;
+    color: #555;
   }
 `;
-
-const ColorInput = styled.input`
-  width: 100%;
-  height: 38px; /* 높이를 Input과 비슷하게 맞춤 */
-  border: 1px solid #d1d5db; /* 테두리 추가 */
-  border-radius: 5px;
-  cursor: pointer;
-  box-sizing: border-box;
-`;
-
-const ButtonGroup = styled.div`
+const DetailModalFooter = styled.div`
   display: flex;
-  justify-content: flex-end; /* 버튼들을 오른쪽으로 정렬 */
-  gap: 8px; /* 버튼들 사이의 간격 */
-  margin-top: 10px; /* 상단 여백 추가 */
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
 `;
-
-const ModalButton = styled.button`
-  padding: 8px 15px; /* 패딩 조정 */
+const OkButton = styled.button`
+  padding: 8px 20px;
   border: none;
   border-radius: 5px;
+  background: #2563eb;
   color: white;
   font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s ease; /* 호버 효과 부드럽게 */
-  
-  background: ${({ cancel, danger }) => 
-    cancel ? "#9ca3af" : danger ? "#dc2626" : "#3b82f6"};
-  
-  &:hover {
-    background: ${({ cancel, danger }) => 
-      cancel ? "#6b7280" : danger ? "#b91c1c" : "#2563eb"};
-  }
+  &:hover { background: #1d4ed8; }
 `;
 
-// ---------------- 헬퍼 (동일) ----------------
+const formatDateForInput = (dateValue) => {
+  if (!dateValue) return '';
+  const date = new Date(dateValue);
+  if (isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function getDateRange(start, end) {
-    const s = new Date(start);
-    const e = new Date(end);
-    const range = [];
-    let cur = new Date(s);
-    while (cur <= e) {
-        range.push(cur.toISOString().slice(0, 10));
-        cur.setDate(cur.getDate() + 1);
-    }
-    return range;
+  const s = new Date(start);
+  const e = new Date(end);
+  const range = [];
+  let cur = new Date(s);
+  while (cur <= e) {
+    range.push(cur.toISOString().slice(0, 10));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return range;
 }
+
 function groupMonths(labels) {
+    if (!labels || labels.length === 0) return [];
     let months = [];
     let currentMonth = new Date(labels[0]).getMonth();
     let currentYear = new Date(labels[0]).getFullYear();
@@ -227,160 +170,139 @@ function groupMonths(labels) {
     return months;
 }
 
-// ---------------- 메인 컴포넌트 ----------------
-function GanttMain() {
-  const timeline = { start: "2025-09-01", end: "2025-10-31" };
-  const labels = getDateRange(timeline.start, timeline.end);
-  const days = labels.length;
-
-  const months = groupMonths(labels);
-
-  const [tasks, setTasks] = useState([
-    { id: 1, name: "디자인 작업", start: "2025-09-02", end: "2025-09-10", row: 1, color: "#ef4444" },
-    { id: 2, name: "프론트엔드 개발", start: "2025-09-08", end: "2025-09-25", row: 2, color: "#3b82f6" },
-    { id: 3, name: "백엔드 개발", start: "2025-09-12", end: "2025-10-05", row: 3, color: "#10b981" },
-    { id: 4, name: "QA 테스트", start: "2025-10-06", end: "2025-10-15", row: 4, color: "#f97316" },
-  ]);
-  const [showModal, setShowModal] = useState(false);
-  const [editTask, setEditTask] = useState(null);
-
-  const [form, setForm] = useState({
-    name: "",
-    start: "",
-    end: "",
-    row: 1,
-    color: "#3b82f6"
-  });
-
-  const getColumnIndex = (date) => labels.indexOf(date) + 1;
-
-  const openNewTaskModal = () => {
-    setForm({ name: "", start: "", end: "", row: tasks.length + 1, color: "#3b82f6" });
-    setEditTask(null);
-    setShowModal(true);
-  };
-
-  const openEditTaskModal = (task) => {
-    setForm(task);
-    setEditTask(task);
-    setShowModal(true);
-  };
-
-  const saveTask = () => {
-    if (!form.name || !form.start || !form.end) return alert("모든 필드를 입력하세요.");
-    if (new Date(form.start) > new Date(form.end)) return alert("시작일은 종료일보다 빨라야 합니다.");
-
-    if (editTask) {
-      setTasks(tasks.map(t => t.id === editTask.id ? { ...form, id: editTask.id } : t));
-    } else {
-      setTasks([...tasks, { ...form, id: Date.now() }]);
-    }
-
-    setShowModal(false);
-    setEditTask(null);
-  };
-
-  const deleteTask = () => {
-    if (!editTask) return;
-    if (window.confirm("정말로 이 작업을 삭제하시겠습니까?")) {
-        setTasks(tasks.filter(t => t.id !== editTask.id));
-        setShowModal(false);
-        setEditTask(null);
-    }
-  };
-
-  const maxRow = tasks.reduce((max, task) => Math.max(max, parseInt(task.row, 10)), 0);
-  const gridRows = Math.max(maxRow, 6);
+function TaskDetailModal({ task, onClose }) {
+  if (!task) return null;
 
   return (
+    <ModalOverlay onClick={onClose}>
+      <ModalBox onClick={(e) => e.stopPropagation()}>
+        <ModalHeader>일감 상세보기</ModalHeader>
+        <DetailModalContent>
+          <DetailField><strong>일감 ID:</strong> {task.taskId}</DetailField>
+          <DetailField><strong>일감 이름:</strong> {task.taskTitle}</DetailField>
+          <DetailField><strong>담당자:</strong> {task.taskManagerId}</DetailField>
+          <DetailField><strong>시작일:</strong> {formatDateForInput(task.taskStartDate)}</DetailField>
+          <DetailField><strong>종료일:</strong> {formatDateForInput(task.taskEndDate)}</DetailField>
+          <DetailField><strong>상태:</strong> {task.taskStatus}</DetailField>
+          <DetailField><strong>우선순위:</strong> {task.taskUrgency}</DetailField>
+        </DetailModalContent>
+        <DetailModalFooter>
+          <OkButton onClick={onClose}>확인</OkButton>
+        </DetailModalFooter>
+      </ModalBox>
+    </ModalOverlay>
+  );
+}
 
+  function GanttMain() {
+  const [tasks, setTasks] = useState([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const projectId = "PJ-001";
+
+  useEffect(() => {
+    // ✅ API 호출은 처음 한 번만 하도록 수정
+    const fetchAllTasks = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`/project/main/project/api/${projectId}/tasks/all`, { withCredentials: true });
+        setTasks(response.data || []);
+      } catch (error) {
+        console.error("간트 데이터 로딩 실패:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAllTasks();
+  }, [projectId]);
+
+  // ✅ 현재 월의 시작일과 마지막일 계산
+  const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+  // ✅ 2. 월 이동 시 화면이 바뀌도록 필터링 로직 추가
+  const filteredTasks = tasks.filter(task => {
+    if (!task.taskStartDate || !task.taskEndDate) return false;
+    const taskStart = new Date(task.taskStartDate);
+    const taskEnd = new Date(task.taskEndDate);
+    // 태스크 기간이 현재 월과 하루라도 겹치면 표시
+    return taskStart <= endOfMonth && taskEnd >= startOfMonth;
+  });
+
+  const timeline = {
+    start: formatDateForInput(startOfMonth),
+    end: formatDateForInput(endOfMonth),
+  };
+
+  const labels = getDateRange(timeline.start, timeline.end);
+  const days = labels.length;
+  const months = groupMonths(labels);
+  const getColumnIndex = (date) => labels.indexOf(formatDateForInput(date)) + 1;
+  const gridRows = Math.max(tasks.length, 10);
+
+  // ✅ 월 이동 핸들러 함수들
+  const handleMonthChange = (direction) => {
+    const newDate = new Date(currentDate);
+    if (direction === 'next') {
+      newDate.setMonth(currentDate.getMonth() + 1);
+    } else if (direction === 'prev') {
+      newDate.setMonth(currentDate.getMonth() - 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const handleDateChange = (date) => {
+    setCurrentDate(date);
+  };
+
+  if (isLoading) {
+    return <Wrapper><ProjectHeader /><p>일감 데이터를 불러오는 중입니다...</p></Wrapper>;
+  }
+
+  return (
     <Wrapper>
-            <ProjectHeader />
-
-      <FixedButton onClick={openNewTaskModal}>간트 생성</FixedButton>
+      <ProjectHeader />
+      <CalendarHeader 
+        currentDate={currentDate}
+        onDateChange={handleDateChange}
+        onMonthChange={handleMonthChange}
+      />
 
       <Container>
         <MonthHeader days={days}>
-          {months.map((m, idx) => (
-            <MonthCell key={idx} start={m.start} end={m.end}>
-              {m.name}
-            </MonthCell>
-          ))}
+          {months.map((m, idx) => (<MonthCell key={idx} start={m.start} end={m.end}>{m.name}</MonthCell>))}
         </MonthHeader>
-
-        <CalendarHeader days={days}>
-          {labels.map((date, idx) => (
-            <CalendarCell key={idx}>{new Date(date).getDate()}</CalendarCell>
-          ))}
-        </CalendarHeader>
-
+        <CalendarHeader11 days={days}>
+          {labels.map((date, idx) => (<CalendarCell key={idx}>{new Date(date).getDate()}</CalendarCell>))}
+        </CalendarHeader11>
         <WeekHeader days={days}>
-          {labels.map((date, idx) => (
-            <WeekCell key={idx}>
-              {["일","월","화","수","목","금","토"][new Date(date).getDay()]}
-            </WeekCell>
-          ))}
+          {labels.map((date, idx) => (<WeekCell key={idx}>{["일","월","화","수","목","금","토"][new Date(date).getDay()]}</WeekCell>))}
         </WeekHeader>
-
-        <ChartGrid days={days} rows={gridRows}>
-          {tasks.map(task => (
-            <Task
-              key={task.id}
-              color={task.color}
-              onClick={() => openEditTaskModal(task)}
-              style={{
-                gridRow: task.row,
-                gridColumn: `${getColumnIndex(task.start)} / span ${getDateRange(task.start, task.end).length}`
-              }}
-            >
-              {task.name}
-            </Task>
-          ))}
+        <ChartGrid days={days} rows={Math.max(filteredTasks.length, 10)}>
+          {/* ✅ 필터링된 태스크 목록으로 렌더링 */}
+          {filteredTasks.map((task, index) => {
+            if (!task.taskStartDate || !task.taskEndDate) return null;
+            return (
+              <Task
+                key={task.taskId}
+                color={"#3b82f6"}
+                title={`${task.taskTitle} (${formatDateForInput(task.taskStartDate)} ~ ${formatDateForInput(task.taskEndDate)})`}
+                onClick={() => setSelectedTask(task)} // ✅ 3. 클릭 시 상세 모달 열기
+                style={{
+                  gridRow: index + 1,
+                  gridColumn: `${getColumnIndex(task.taskStartDate)} / span ${getDateRange(task.taskStartDate, task.taskEndDate).length}`
+                }}
+              >
+                {task.taskTitle}
+              </Task>
+            );
+          })}
         </ChartGrid>
       </Container>
-      
-        {/* 모달 */}
-        {showModal && (
-        <ModalOverlay>
-            <ModalBox>
-            <ModalHeader>{editTask ? "작업 수정" : "간트 생성"}</ModalHeader> {/* 스타일 컴포넌트로 변경 */}
-            <InputGroup> {/* 입력 필드를 그룹화 */}
-                <Input
-                    placeholder="작업명"
-                    value={form.name}
-                    onChange={e => setForm({ ...form, name: e.target.value })}
-                />
-                <Input
-                    type="date"
-                    value={form.start}
-                    onChange={e => setForm({ ...form, start: e.target.value })}
-                />
-                <Input
-                    type="date"
-                    value={form.end}
-                    onChange={e => setForm({ ...form, end: e.target.value })}
-                />
-                <Input
-                    type="number"
-                    min="1"
-                    placeholder="행(Row) 번호"
-                    value={form.row}
-                    onChange={e => setForm({ ...form, row: parseInt(e.target.value, 10) || 1 })}
-                />
-                <ColorInput
-                    type="color"
-                    value={form.color}
-                    onChange={e => setForm({ ...form, color: e.target.value })}
-                />
-            </InputGroup>
-            <ButtonGroup> {/* 버튼들을 그룹화 */}
-                <ModalButton onClick={saveTask}>{editTask ? "수정" : "추가"}</ModalButton>
-                {editTask && <ModalButton danger onClick={deleteTask}>삭제</ModalButton>}
-                <ModalButton cancel onClick={() => setShowModal(false)}>취소</ModalButton>
-            </ButtonGroup>
-            </ModalBox>
-        </ModalOverlay>
-        )}
+
+      {/* ✅ 3. 상세 보기 모달 렌더링 */}
+      {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />}
     </Wrapper>
   );
 }

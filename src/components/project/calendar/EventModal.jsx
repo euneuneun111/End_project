@@ -134,7 +134,13 @@ const formatDateForInput = (dateValue) => {
   try {
     const date = new Date(dateValue);
     if (isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
+
+    // UTC가 아닌 로컬 시간 기준으로 년, 월, 일을 가져옴
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작하므로 +1
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   } catch (error) {
     return '';
   }
@@ -144,25 +150,12 @@ const formatDateForInput = (dateValue) => {
 // --- Component ---
 
 const EventModal = ({ isOpen, onClose, onSubmit, onDelete, onSwitchToEdit, mode, initialData }) => {
-
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(initialData || {});
 
   useEffect(() => {
-    // ✅ initialData를 직접 수정하지 않기 위해 복사본을 만듭니다.
-    const dataToDisplay = { ...initialData };
+    setFormData(initialData || {});
+  }, [initialData]);
 
-    // ✅ 상세보기 또는 수정 모드일 때, 사용자에게 보여주기 위해 종료일을 하루 뺍니다.
-    if ((mode === 'detail' || mode === 'edit') && dataToDisplay.end) {
-      // 하루짜리 일정이 아닐 경우에만 (시작일과 종료일이 다를 때)
-      if (formatDateForInput(dataToDisplay.start) !== formatDateForInput(dataToDisplay.end)) {
-        const endDate = new Date(dataToDisplay.end);
-        endDate.setDate(endDate.getDate() - 1);
-        dataToDisplay.end = endDate.toISOString().split('T')[0];
-      }
-    }
-    
-    setFormData(dataToDisplay || {});
-  }, [isOpen, initialData, mode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -171,22 +164,17 @@ const EventModal = ({ isOpen, onClose, onSubmit, onDelete, onSwitchToEdit, mode,
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // ✅ 1. 메모(내용)가 비어있는지 확인합니다.
     if (!formData.calendarContent || formData.calendarContent.trim() === '') {
       alert('메모(일정 내용)를 입력해주세요.');
-      return; // 저장을 중단합니다.
+      return;
     }
 
     const processedData = { ...formData };
 
     if (!processedData.end || processedData.end === '') {
       processedData.end = processedData.start; 
-    } else if (processedData.start !== processedData.end) {
-      const endDate = new Date(processedData.end);
-      endDate.setDate(endDate.getDate() + 1);
-      processedData.end = endDate.toISOString().split('T')[0];
     }
+
     
     onSubmit(processedData);
   };
