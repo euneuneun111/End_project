@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // ✅ Styled Components
 const Container = styled.div`
@@ -85,25 +86,60 @@ const Button = styled.button`
 
 // ✅ Component
 function ReportModify() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
 
-  const [form, setForm] = useState({
-    date: today,
-    author: "",
-    content: "",
-  });
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(()=> {
+    const fetchReport = async () => {
+      try {
+        const response = await axios.get("/project/organization/report/detail",{
+          params: {rno:id},
+          headers: {Accept : "application/json"},
+        });
+        setReport(response.data);
+      } catch (err){
+        console.error("데이터 가져오기 실패:", err);
+        setError("데이터를 가져오는 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReport();
+  }, [id]);
+
+  if(loading) return <div>로딩 중...</div>;
+  if(error) return <div>{error}</div>;
+  if(!report) return <div>보고서를 찾을 수 없습니다.</div>;
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setReport((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("보고 작성 데이터:", form);
-    alert("보고가 저장되었습니다!");
-    navigate("/report");
+    try {
+      const { reportDate, ...sendData } = report; // reportDate 제거
+      const response = await axios.post(
+        "/project/organization/report/modify",
+        sendData,
+        { headers: { "Content-Type": "application/json" } }
+      );
+      if (response.data === "success"){
+        alert("보고가 수정되었습니다!");
+        navigate("/report/Main");
+      }
+    } catch (err) {
+      console.log("report 보내기 전:",report);
+      console.error("보고 수정 실패:", err);
+      alert("수정 중 오류 발생");
+    }
   };
 
   return (
@@ -113,15 +149,15 @@ function ReportModify() {
         <Row>
           <FormGroup>
             <Label>작성 날짜</Label>
-            <Input type="date" name="date" value={form.date} readOnly />
+            <Input type="date" name="regDate" value={report.regDate ? new Date(report.regDate).toISOString().split("T")[0] : ""} readOnly />
           </FormGroup>
 
           <FormGroup>
             <Label>작성자</Label>
             <Input
               type="text"
-              name="author"
-              value={form.author}
+              name="writer"
+              value={report.writer || ""}
               onChange={handleChange}
               required
             />
@@ -129,10 +165,21 @@ function ReportModify() {
         </Row>
 
         <FormGroup>
+            <Label>제목</Label>
+            <Input
+              type="text"
+              name="title"
+              value={report.title || ""}
+              onChange={handleChange}
+              required
+            />
+          </FormGroup>
+
+        <FormGroup>
           <Label>내용</Label>
           <TextArea
             name="content"
-            value={form.content}
+            value={report.content || ""}
             onChange={handleChange}
             required
           />

@@ -94,6 +94,7 @@ function ReportCreate() {
     writer: "",
     content: "",
     title:"",
+    reportDate: today,
   });
 
   const handleChange = (e) => {
@@ -115,6 +116,7 @@ function ReportCreate() {
       console.log("서버응답:",response.data);
       alert("보고가 저장되었습니다.");
       navigate("/report/Main");
+      console.log(form)
     } catch (err) {
       console.error("보고 저장 실패:",err);
       alert("보고 저장 중 오류 발생");
@@ -142,6 +144,16 @@ function ReportCreate() {
             />
           </FormGroup>
         </Row>
+
+        <FormGroup>
+          <Label>제목</Label>
+          <Input
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            required
+          />
+        </FormGroup>
 
         <FormGroup>
           <Label>내용</Label>

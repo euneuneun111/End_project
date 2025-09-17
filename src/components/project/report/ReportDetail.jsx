@@ -99,20 +99,44 @@ function ReportDetail() {
   if(error) return <div>{error}</div>;
   if(!report) return <div>보고서를 찾을 수 없습니다.</div>;
 
+  // 삭제 함수
+const handleDelete = async () => {
+  if (!window.confirm("정말 삭제하시겠습니까?")) return;
+
+  try {
+    const response = await axios.post(
+      "/project/organization/report/remove",
+      { rno: report.rno }, // 삭제할 rno 전달
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    if (response.data === "success") {
+      alert("보고서가 삭제되었습니다.");
+      navigate("/report/Main"); // 삭제 후 목록 페이지로 이동
+    } else {
+      alert("삭제 실패");
+    }
+  } catch (err) {
+    console.error("삭제 실패:", err);
+    alert("삭제 중 오류 발생");
+  }
+};
+
   return (
     <Container>
       {/* 상단 수정/삭제 */}
       <ActionBar>
         <Button color="#6c757d" hoverColor="#5a6268" onClick={() => navigate(-1)}>목록</Button>
         <Button color="#f0ad4e" hoverColor="#ec971f" key={report.id}
-                onClick={() => navigate(`/report/modify/${report.id}`)} >수정</Button>
-        <Button color="#d9534f" hoverColor="#c9302c">삭제</Button>
+                onClick={() => navigate(`/report/modify/${report.rno}`)} >수정</Button>
+        <Button color="#d9534f" hoverColor="#c9302c" delete onClick={handleDelete}>삭제</Button>
       </ActionBar>
 
       <Title>보고서 상세</Title>
-      <Info><span>작성 날짜:</span> {new Date(report.regDate).toLocaleDateString()}</Info>
-      <Info><span>작성자:</span> {report.writer}</Info>
-      <Info><span>상태:</span> {report.check}</Info>
+      <Info><span>작성 날짜: </span> {new Date(report.regDate).toLocaleDateString()}</Info>
+      <Info><span>제목: </span>{report.title}</Info>
+      <Info><span>작성자: </span> {report.writer}</Info>
+      <Info><span>상태: </span> {report.check}</Info>
       <Content>{report.content}</Content>
 
       {/* 하단 확인 버튼 */}
