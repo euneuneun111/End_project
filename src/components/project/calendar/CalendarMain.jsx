@@ -48,30 +48,28 @@ function CalendarMain() {
   }, []);
 
   const handleMonthChange = (direction) => {
-    // 현재 애니메이션이 진행 중이면 중복 실행 방지
     if (animationClass) return;
 
-    // 'next' 버튼 클릭 시
     if (direction === 'next') {
-      setAnimationClass('slide-out-left'); // 사라지는 애니메이션
+      setAnimationClass('slide-out-left');
       
       setTimeout(() => {
-        calendarRef.current?.getApi().next(); // 실제 캘린더 월 변경
-        setAnimationClass('slide-in-right'); // 나타나는 애니메이션
-      }, 250); // 애니메이션 시간과 일치
+        calendarRef.current?.getApi().next();
+        setAnimationClass('slide-in-right');
+      }, 250);
     }
 
-    // 'prev' 버튼 클릭 시
+
     if (direction === 'prev') {
-      setAnimationClass('slide-out-right'); // 사라지는 애니메이션
+      setAnimationClass('slide-out-right');
 
       setTimeout(() => {
-        calendarRef.current?.getApi().prev(); // 실제 캘린더 월 변경
-        setAnimationClass('slide-in-left'); // 나타나는 애니메이션
-      }, 250); // 애니메이션 시간과 일치
+        calendarRef.current?.getApi().prev();
+        setAnimationClass('slide-in-left');
+      }, 250);
     }
     
-    // 애니메이션 클래스 초기화 (다음 클릭을 위해)
+ 
     setTimeout(() => {
       setAnimationClass('');
     }, 500);
@@ -110,8 +108,7 @@ function CalendarMain() {
     setIsModalOpen(false);
     setSelectedEvent(null);
   };
-  
-  // ✅ 2. 일정 추가/수정 핸들러 (서버 통신)
+
   const handleModalSubmit = async (eventData) => {
     const calendarDto = {
         calendarId: eventData.id,
@@ -122,20 +119,22 @@ function CalendarMain() {
     };
 
     try {
-      if (calendarDto.calendarId) {
-        await axios.put('/project/main/calendar/update', calendarDto, { withCredentials: true });
-        alert('일정이 성공적으로 수정되었습니다.'); // ✅ 수정 완료 알림
-      } else {
-        await axios.post('/project/main/calendar/add', calendarDto, { withCredentials: true });
-        alert('일정이 성공적으로 등록되었습니다.'); // ✅ 등록 완료 알림
-      }
-      fetchEvents();
+        if (calendarDto.calendarId) {
+            await axios.put('/project/main/calendar/update', calendarDto, { withCredentials: true });
+            alert('일정이 성공적으로 수정되었습니다.');
+        } else {
+            await axios.post('/project/main/calendar/add', calendarDto, { withCredentials: true });
+            alert('일정이 성공적으로 등록되었습니다.');
+        }
+        // ✅ 성공하면 무조건 fetchEvents() 호출
+        fetchEvents();
     } catch (error) {
-      console.error("일정 저장에 실패했습니다.", error);
-      alert('일정 저장 중 오류가 발생했습니다.'); //  실패 알림
+        console.error("일정 저장에 실패했습니다.", error);
+        alert('일정 저장 중 오류가 발생했습니다.');
     }
+
     handleCloseModal();
-  };
+};
   
   const handleDeleteEvent = async (eventId) => {
     try {

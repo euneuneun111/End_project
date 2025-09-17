@@ -72,18 +72,18 @@ const CalendarWrapperStyled = styled.div`
 
 const CalendarWrapper = ({ calendarRef, events, onDateClick, onEventClick, onDatesSet, selectedDate, animationClass }) => {
   
-  // ✅ FullCalendar에 전달하기 직전에 표시용 데이터를 가공합니다.
+ 
   const processedEvents = events.map(event => {
-    // start와 end가 있고, 서로 다른 날짜인 경우 (여러 날에 걸친 일정)
+
     if (event.start && event.end && event.start !== event.end) {
       const endDate = new Date(event.end);
-      endDate.setDate(endDate.getDate() + 1); // 종료일에 하루를 더함
+      endDate.setDate(endDate.getDate() + 1);
       return {
         ...event,
         end: endDate.toISOString().split('T')[0]
       };
     }
-    // 당일 일정은 그대로 반환
+
     return event;
   });
 

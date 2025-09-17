@@ -1,12 +1,39 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from 'axios';
 import Pagination from './Pagination';
-import Select from 'react-select'; // ✅ 1. react-select 라이브러리 import
+import Select from 'react-select';
+import styled, { keyframes } from 'styled-components';
 
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
 
+const slideUp = keyframes`
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+`;
+const slideOutLeft = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-20px); opacity: 0; }
+`;
+
+const slideInRight = keyframes`
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
+const slideOutRight = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(20px); opacity: 0; }
+`;
+
+const slideInLeft = keyframes`
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
 // ✅ 2. 드롭다운에 사용할 옵션 데이터를 미리 정의합니다.
 const statusOptions = [
   { value: '진행 중', label: '진행 중' },
@@ -56,6 +83,7 @@ const ModalOverlay = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const ModalWrapper = styled.div`
@@ -65,6 +93,7 @@ const ModalWrapper = styled.div`
   max-width: 480px;
   padding: 20px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: ${slideUp} 0.4s ease-out;
 `;
 
 const ModalHeader = styled.div`
@@ -410,17 +439,20 @@ const ContentWrapper = styled.div`
 const IssueListWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
+  &.slide-out-left { animation: ${slideOutLeft} 0.25s forwards; }
+  &.slide-in-right { animation: ${slideInRight} 0.25s forwards; }
+  &.slide-out-right { animation: ${slideOutRight} 0.25s forwards; }
+  &.slide-in-left { animation: ${slideInLeft} 0.25s forwards; }
 `;
 
-// --- 메인 ---
 function IssueMain() {
-  //  useState를 빈 배열로 초기화 (서버에서 데이터를 받아올 것이므로)
   const [issues, setIssues] = useState([]);
   const [taskList, setTaskList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [pageMaker, setPageMaker] = useState(null);
   const [keyword, setKeyword] = useState("");
+  const [animationClass, setAnimationClass] = useState('');
   const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID를 동적으로 받아오도록 수정
 
   const fetchTasks = async () => {
@@ -453,18 +485,39 @@ function IssueMain() {
   };
 
   useEffect(() => {
-    fetchIssues(1, ""); // ✅ 처음에는 검색어 없이 로드
+    fetchIssues(1, "");
     fetchTasks();
   }, []);
 
-  const handlePageChange = (page) => {
-    fetchIssues(page, keyword); // ✅ 페이지 이동 시에도 현재 검색어 유지
+  const handlePageChange = (newPage) => {
+    // 현재 페이지보다 높은 페이지로 가면 '다음'으로 간주
+    const direction = newPage > (pageMaker?.page || 1) ? 'next' : 'prev';
+
+    if (animationClass) return; // 애니메이션 중이면 중복 실행 방지
+
+    if (direction === 'next') {
+      setAnimationClass('slide-out-left');
+      setTimeout(() => {
+        fetchIssues(newPage, keyword); // 실제 데이터 변경
+        setAnimationClass('slide-in-right');
+      }, 250);
+    } else { // direction === 'prev'
+      setAnimationClass('slide-out-right');
+      setTimeout(() => {
+        fetchIssues(newPage, keyword); // 실제 데이터 변경
+        setAnimationClass('slide-in-left');
+      }, 250);
+    }
+
+    // 애니메이션 클래스 초기화
+    setTimeout(() => {
+      setAnimationClass('');
+    }, 500);
   };
 
-  // ✅ 3. 검색창에서 Enter 키를 눌렀을 때 실행될 핸들러 추가
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
-      fetchIssues(1, keyword); // 검색 시에는 항상 1페이지부터 조회
+      fetchIssues(1, keyword);
     }
   };
 
@@ -529,8 +582,7 @@ function IssueMain() {
             </TitleSection>
             <NewIssueButton onClick={() => setIsModalOpen(true)}>+ 새 이슈</NewIssueButton>
           </Header>
-          <IssueListWrapper>
-            {/* ✅ DTO 필드명에 맞게 수정 (id -> issueId, title -> issueTitle 등) */}
+          <IssueListWrapper className={animationClass}>
             {issues.map((issue) => (
               <IssueItemRow key={issue.issueId} onClick={() => setSelectedIssue(issue)}>
                 <IssueTopLine>

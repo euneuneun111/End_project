@@ -1,10 +1,39 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from 'axios';
 import Pagination from './Pagination';
+import styled, { keyframes } from 'styled-components';
 
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+const slideUp = keyframes`
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+`;
+
+const slideOutLeft = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-20px); opacity: 0; }
+`;
+
+const slideInRight = keyframes`
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
+const slideOutRight = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(20px); opacity: 0; }
+`;
+
+const slideInLeft = keyframes`
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
 
 const formatDateForInput = (dateValue) => {
   if (!dateValue) return '';
@@ -34,6 +63,7 @@ const ModalOverlay = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const ModalWrapper = styled.div`
@@ -43,6 +73,7 @@ const ModalWrapper = styled.div`
   max-width: 480px;
   padding: 20px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: ${slideUp} 0.4s ease-out;
 `;
 
 const ModalHeader = styled.div`
@@ -441,6 +472,10 @@ const ContentWrapper = styled.div`
 const TaskListWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
+  &.slide-out-left { animation: ${slideOutLeft} 0.25s forwards; }
+  &.slide-in-right { animation: ${slideInRight} 0.25s forwards; }
+  &.slide-out-right { animation: ${slideOutRight} 0.25s forwards; }
+  &.slide-in-left { animation: ${slideInLeft} 0.25s forwards; }
 `;
 
 // --- pagination (고정 하단) ---
@@ -453,15 +488,16 @@ const PaginationContainer = styled.div`
   border-top: 1px solid #f1f5f9;
   background: #fff;
   position: sticky;
-  bottom: 60px;   /* 리스트 하단 고정 */
+  bottom: 60px;
 `;
 // --- 메인 ---
 function TaskMain() {
-  const [tasks, setTasks] = useState([]); // ✅ 빈 배열로 초기화
+  const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [pageMaker, setPageMaker] = useState(null); // ✅ 페이지네이션 상태 추가
+  const [pageMaker, setPageMaker] = useState(null);
   const [keyword, setKeyword] = useState("");
+  const [animationClass, setAnimationClass] = useState('');
   const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID
 
   // ✅ 일감 목록을 서버에서 불러오는 함수
@@ -470,7 +506,7 @@ function TaskMain() {
       const response = await axios.get(`/project/main/project/api/${projectId}/tasks`, {
         params: { 
           page: page,
-          keyword: searchKeyword // ✅ API 요청에 검색어 추가
+          keyword: searchKeyword
         },
         withCredentials: true
       });
@@ -482,21 +518,42 @@ function TaskMain() {
   };
 
   useEffect(() => {
-    fetchTasks(1, ""); // ✅ 처음에는 검색어 없이 로드
+    fetchTasks(1, "");
   }, []);
   
-  const handlePageChange = (page) => {
-    fetchTasks(page, keyword); // ✅ 페이지 이동 시에도 현재 검색어 유지
+  const handlePageChange = (newPage) => {
+    // 현재 페이지보다 높은 페이지로 가면 '다음'으로 간주
+    const direction = newPage > (pageMaker?.page || 1) ? 'next' : 'prev';
+
+    if (animationClass) return; // 애니메이션 중이면 중복 실행 방지
+
+    if (direction === 'next') {
+      setAnimationClass('slide-out-left');
+      setTimeout(() => {
+        fetchTasks(newPage, keyword); // 실제 데이터 변경
+        setAnimationClass('slide-in-right');
+      }, 250);
+    } else { // direction === 'prev'
+      setAnimationClass('slide-out-right');
+      setTimeout(() => {
+        fetchTasks(newPage, keyword); // 실제 데이터 변경
+        setAnimationClass('slide-in-left');
+      }, 250);
+    }
+
+    // 애니메이션 클래스 초기화
+    setTimeout(() => {
+      setAnimationClass('');
+    }, 500);
   };
 
-  // ✅ 3. 검색창에서 Enter 키를 눌렀을 때 실행될 핸들러 추가
+
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
-      fetchTasks(1, keyword); // 검색 시에는 항상 1페이지부터 조회
+      fetchTasks(1, keyword);
     }
   };
 
-  // ✅ 새 일감 추가 (API 연동)
   const handleAddTask = async (newTask) => {
     try {
       await axios.post(`/project/main/project/${projectId}/tasklist`, newTask, { withCredentials: true });
@@ -557,8 +614,7 @@ function TaskMain() {
               </TitleSection>
             <NewTaskButton onClick={() => setIsModalOpen(true)}>+ 새 일감</NewTaskButton>
           </Header>
-          <TaskListWrapper>
-            {/* ✅ DTO 필드명에 맞게 수정 */}
+          <TaskListWrapper className={animationClass}>
             {tasks.map((task) => (
               <TaskItemRow key={task.taskId} onClick={() => setSelectedTask(task)}>
                 <TaskTopLine>
@@ -578,7 +634,6 @@ function TaskMain() {
               </TaskItemRow>
             ))}
           </TaskListWrapper>
-          {/* ✅ Pagination 컴포넌트 추가 */}
           <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
         </ContentWrapper>
       </Container>

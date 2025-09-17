@@ -1,9 +1,72 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from 'styled-components';
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from 'axios';
 import CalendarHeader from "../calendar/CalendarHeader"; 
 
+
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+const slideUp = keyframes`
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+`;
+
+const slideOutLeft = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-20px); opacity: 0; }
+`;
+
+const slideInRight = keyframes`
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
+const slideOutRight = keyframes`
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(20px); opacity: 0; }
+`;
+
+const slideInLeft = keyframes`
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: ${fadeIn} 0.3s ease-out;
+`;
+
+const ModalBox = styled.div`
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  animation: ${slideUp} 0.4s ease-out;
+`;
+
+const ModalHeader = styled.h2`
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+`;
 
 // ---------------- 스타일 (기존 코드에서 변경 없음) ----------------
 const Wrapper = styled.div`
@@ -22,6 +85,10 @@ const Container = styled.div`
   padding: 16px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   overflow-x: auto;
+  &.slide-out-left { animation: ${slideOutLeft} 0.25s forwards; }
+  &.slide-in-right { animation: ${slideInRight} 0.25s forwards; }
+  &.slide-out-right { animation: ${slideOutRight} 0.25s forwards; }
+  &.slide-in-left { animation: ${slideInLeft} 0.25s forwards; }
 `;
 
 const MonthHeader = styled.div`
@@ -48,6 +115,7 @@ const CalendarHeader11 = styled.div`
   font-size: 12px;
   font-weight: bold;
   color: #1f2937;
+
 `;
 
 const CalendarCell = styled.div`
@@ -123,6 +191,13 @@ const OkButton = styled.button`
   font-size: 14px;
   cursor: pointer;
   &:hover { background: #1d4ed8; }
+`;
+const GridLine = styled.div`
+  border-right: 1px solid #e5e7eb;
+  grid-row: 1 / -1;
+  &:last-child {
+    border-right: none;
+  }
 `;
 
 const formatDateForInput = (dateValue) => {
@@ -240,17 +315,38 @@ function TaskDetailModal({ task, onClose }) {
   const months = groupMonths(labels);
   const getColumnIndex = (date) => labels.indexOf(formatDateForInput(date)) + 1;
   const gridRows = Math.max(tasks.length, 10);
+  const [animationClass, setAnimationClass] = useState('');
+  
 
-  // ✅ 월 이동 핸들러 함수들
   const handleMonthChange = (direction) => {
-    const newDate = new Date(currentDate);
+    if (animationClass) return;
+
+    const changeMonth = (amount) => {
+        setCurrentDate(prevDate => {
+            const newDate = new Date(prevDate);
+            newDate.setMonth(newDate.getMonth() + amount);
+            return newDate;
+        });
+    };
+
     if (direction === 'next') {
-      newDate.setMonth(currentDate.getMonth() + 1);
-    } else if (direction === 'prev') {
-      newDate.setMonth(currentDate.getMonth() - 1);
+        setAnimationClass('slide-out-left');
+        setTimeout(() => {
+            changeMonth(1); // ✅ 다음 달로 변경
+            setAnimationClass('slide-in-right');
+        }, 250);
+    } else { // 'prev'
+        setAnimationClass('slide-out-right');
+        setTimeout(() => {
+            changeMonth(-1); // ✅ 이전 달로 변경
+            setAnimationClass('slide-in-left');
+        }, 250);
     }
-    setCurrentDate(newDate);
-  };
+
+    setTimeout(() => {
+        setAnimationClass('');
+    }, 500);
+};
 
   const handleDateChange = (date) => {
     setCurrentDate(date);
@@ -264,12 +360,13 @@ function TaskDetailModal({ task, onClose }) {
     <Wrapper>
       <ProjectHeader />
       <CalendarHeader 
+        
         currentDate={currentDate}
         onDateChange={handleDateChange}
         onMonthChange={handleMonthChange}
       />
 
-      <Container>
+      <Container className={animationClass}>
         <MonthHeader days={days}>
           {months.map((m, idx) => (<MonthCell key={idx} start={m.start} end={m.end}>{m.name}</MonthCell>))}
         </MonthHeader>
@@ -280,25 +377,32 @@ function TaskDetailModal({ task, onClose }) {
           {labels.map((date, idx) => (<WeekCell key={idx}>{["일","월","화","수","목","금","토"][new Date(date).getDay()]}</WeekCell>))}
         </WeekHeader>
         <ChartGrid days={days} rows={Math.max(filteredTasks.length, 10)}>
-          {/* ✅ 필터링된 태스크 목록으로 렌더링 */}
-          {filteredTasks.map((task, index) => {
-            if (!task.taskStartDate || !task.taskEndDate) return null;
-            return (
-              <Task
-                key={task.taskId}
-                color={"#3b82f6"}
-                title={`${task.taskTitle} (${formatDateForInput(task.taskStartDate)} ~ ${formatDateForInput(task.taskEndDate)})`}
-                onClick={() => setSelectedTask(task)} // ✅ 3. 클릭 시 상세 모달 열기
-                style={{
-                  gridRow: index + 1,
-                  gridColumn: `${getColumnIndex(task.taskStartDate)} / span ${getDateRange(task.taskStartDate, task.taskEndDate).length}`
-                }}
-              >
-                {task.taskTitle}
-              </Task>
-            );
-          })}
-        </ChartGrid>
+
+  {/* ✅ 1. 배경 세로줄 그리기 (이 부분이 추가되었습니다) */}
+  {Array.from({ length: days }).map((_, index) => (
+    <GridLine key={`line-${index}`} style={{ gridColumn: index + 1 }} />
+  ))}
+
+  {/* ✅ 2. 기존 일감(Task) 막대 그리기 (이 부분은 원래 코드입니다) */}
+  {filteredTasks.map((task, index) => {
+    if (!task.taskStartDate || !task.taskEndDate) return null;
+    return (
+      <Task
+        key={task.taskId}
+        color={"#3b82f6"}
+        title={`${task.taskTitle} (${formatDateForInput(task.taskStartDate)} ~ ${formatDateForInput(task.taskEndDate)})`}
+        onClick={() => setSelectedTask(task)}
+        style={{
+          gridRow: index + 1,
+          gridColumn: `${getColumnIndex(task.taskStartDate)} / span ${getDateRange(task.taskStartDate, task.taskEndDate).length}`
+        }}
+      >
+        {task.taskTitle}
+      </Task>
+    );
+  })}
+
+</ChartGrid>
       </Container>
 
       {/* ✅ 3. 상세 보기 모달 렌더링 */}
