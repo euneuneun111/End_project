@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import styled from "styled-components";
+import { logout } from "../login/LoginApi";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   width: 100%;
@@ -11,7 +14,10 @@ const Container = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  font-size: 24px;
+  color: #333;
   font-weight: bold;
   margin-bottom: 12px;
 `;
@@ -121,13 +127,51 @@ const CancelButton = styled.button`
   cursor: pointer;
 `;
 
+const LogoutButton = styled.div`
+  display: flex;
+  justify-content: center;
+  //background-color: #e6e6e6;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  font-size: 18px;
+  border-radius: 25px;
+  text-transform: uppercase;
+`
+
 function MypageMain({ user, projects }) {
+  const [loginUser, setLoginUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    phone: user?.phone || "",
+    user_id: user?.user_id || "",
+    name: user?.name || "",
     email: user?.email || "",
-    password: "",
+    user_pwd: "",
   });
+
+  useEffect(() => {
+  if (isModalOpen && loginUser) {
+    setFormData({
+      user_id: loginUser.user_id || "",
+      name: loginUser.name || "",
+      email: loginUser.email || "",
+      user_pwd: ""
+    });
+  }
+}, [isModalOpen, loginUser]);
+
+  useEffect(() => {
+    axios.get("/project/commons/check-session", { withCredentials: true })
+      .then(res => {
+        if (res.data.authenticated) {
+          setLoginUser(res.data.user);
+        } else {
+          setLoginUser(null);
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -135,14 +179,34 @@ function MypageMain({ user, projects }) {
   };
 
   const handleSave = () => {
-    console.log("수정된 값:", formData);
-    // TODO: 서버에 저장하는 API 호출 추가 가능
-    setIsModalOpen(false);
+    axios.post("/project/member/modifyApi", formData, { withCredentials: true })
+  .then(res => {
+    if (res.data.success) {
+      alert("수정 완료");
+      setLoginUser(res.data.member); // 화면 갱신
+      localStorage.setItem("user", JSON.stringify(res.data.member));
+      setIsModalOpen(false);
+    } else {
+      alert("수정 실패: " + res.data.message);
+    }
+  });
+  };
+
+  const handleLogout = async () => {
+    const res = await logout();
+
+    if (res.success !== false) {
+      alert("로그아웃 되었습니다.");
+      navigate("/login"); // 로그아웃 후 로그인 페이지로 이동
+    } else {
+      alert("로그아웃 실패: " + res.message);
+    }
   };
 
   return (
     <Container>
-      <Title>마이페이지</Title>
+      <Title>{loginUser?.user_id}의 마이페이지</Title>
+      
 
       {/* Profile */}
       <Card>
@@ -153,11 +217,11 @@ function MypageMain({ user, projects }) {
         <CardContent>
           <InfoRow>
             <i className="fa-solid fa-user" name="MYPAGE"></i>
-            {user?.name}
+            {loginUser?.name}
           </InfoRow>
           <InfoRow>
             <i className="fa-solid fa-envelope" name="email"></i>
-            {user?.email}
+            {loginUser?.email}
           </InfoRow>
         </CardContent>
       </Card>
@@ -180,6 +244,7 @@ function MypageMain({ user, projects }) {
           </InfoRow>
         </CardContent>
       </Card>
+      <LogoutButton type="button" onClick={handleLogout}>logout</LogoutButton>
 
       {/* 모달 */}
       {isModalOpen && (
@@ -188,9 +253,9 @@ function MypageMain({ user, projects }) {
             <ModalTitle>프로필 수정</ModalTitle>
             <Input
               type="text"
-              name="phone"
-              placeholder="전화번호"
-              value={formData.phone}
+              name="name"
+              placeholder="이름"
+              value={formData.name}
               onChange={handleChange}
             />
             <Input
@@ -202,9 +267,9 @@ function MypageMain({ user, projects }) {
             />
             <Input
               type="password"
-              name="password"
+              name="user_pwd"
               placeholder="비밀번호"
-              value={formData.password}
+              value={formData.user_pwd}
               onChange={handleChange}
             />
             <ModalActions>
