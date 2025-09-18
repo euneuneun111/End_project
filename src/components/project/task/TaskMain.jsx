@@ -3,55 +3,72 @@ import { useState, useEffect } from 'react';
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from 'axios';
 import Pagination from './Pagination';
+import Select from 'react-select'; // react-select import
 import styled, { keyframes } from 'styled-components';
 
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
+// --- 애니메이션 Keyframes ---
+const fadeIn = keyframes` from { opacity: 0; } to { opacity: 1; } `;
+const slideUp = keyframes` from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } `;
+const slideOutLeft = keyframes` from { transform: translateX(0); opacity: 1; } to { transform: translateX(-20px); opacity: 0; } `;
+const slideInRight = keyframes` from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } `;
+const slideOutRight = keyframes` from { transform: translateX(0); opacity: 1; } to { transform: translateX(20px); opacity: 0; } `;
+const slideInLeft = keyframes` from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } `;
 
-const slideUp = keyframes`
-  from { transform: translateY(50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-`;
+// --- react-select 옵션 및 스타일 (이슈 파트와 동일) ---
+const statusOptions = [
+  { value: '진행 중', label: '진행 중' },
+  { value: '완료', label: '완료' },
+  { value: '검토 중', label: '검토 중' },
+  { value: '대기 중', label: '대기 중' },
+];
 
-const slideOutLeft = keyframes`
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(-20px); opacity: 0; }
-`;
+const urgencyOptions = [
+  { value: '긴급', label: '긴급' },
+  { value: '높음', label: '높음' },
+  { value: '보통', label: '보통' },
+  { value: '낮음', label: '낮음' },
+];
 
-const slideInRight = keyframes`
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-`;
+const managerOptions = [ // 담당자 목록은 필요에 따라 동적으로 받아올 수 있습니다.
+  { value: 'mimi', label: 'mimi' },
+  { value: 'cheolsu', label: 'cheolsu' },
+];
 
-const slideOutRight = keyframes`
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(20px); opacity: 0; }
-`;
+const customStyles = {
+  control: (provided) => ({
+    ...provided,
+    border: '1px solid #ccc',
+    borderRadius: '6px',
+    padding: '2px',
+    fontSize: '14px',
+    boxShadow: 'none',
+    '&:hover': { borderColor: '#888' }
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#7c3aed' : state.isFocused ? '#f3e8ff' : 'white',
+    color: state.isSelected ? 'white' : '#333',
+    fontSize: '14px',
+  }),
+  menu: (provided) => ({ ...provided, zIndex: 1001 })
+};
 
-const slideInLeft = keyframes`
-  from { transform: translateX(-20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-`;
-
+// --- Helper 함수 ---
 const formatDateForInput = (dateValue) => {
   if (!dateValue) return '';
   try {
     const date = new Date(dateValue);
     if (isNaN(date.getTime())) return '';
-
-    // ✅ UTC가 아닌 로컬 시간 기준으로 년, 월, 일을 가져옴
     const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작하므로 +1
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
-
     return `${year}-${month}-${day}`;
   } catch (error) {
     return '';
   }
 };
 
+// --- 모달 공통 스타일 ---
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -65,7 +82,6 @@ const ModalOverlay = styled.div`
   z-index: 1000;
   animation: ${fadeIn} 0.3s ease-out;
 `;
-
 const ModalWrapper = styled.div`
   background-color: white;
   border-radius: 12px;
@@ -75,7 +91,6 @@ const ModalWrapper = styled.div`
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   animation: ${slideUp} 0.4s ease-out;
 `;
-
 const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -83,15 +98,8 @@ const ModalHeader = styled.div`
   border-bottom: 1px solid #ddd;
   padding-bottom: 12px;
   margin-bottom: 20px;
-
-  h2 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: #333;
-  }
+  h2 { margin: 0; font-size: 18px; font-weight: 700; color: #333; }
 `;
-
 const CloseButton = styled.button`
   background: none;
   border: none;
@@ -99,27 +107,23 @@ const CloseButton = styled.button`
   cursor: pointer;
   color: #888;
 `;
-
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
 `;
-
 const FormLabel = styled.label`
   margin-bottom: 6px;
   font-size: 14px;
   font-weight: 600;
   color: #444;
 `;
-
 const FormInput = styled.input`
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
 `;
-
 const FormTextarea = styled.textarea`
   padding: 10px;
   border: 1px solid #ccc;
@@ -128,21 +132,12 @@ const FormTextarea = styled.textarea`
   min-height: 80px;
   resize: vertical;
 `;
-
-const FormSelect = styled.select`
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-`;
-
 const ModalFooter = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
 `;
-
 const SaveButton = styled.button`
   background-color: #22c55e;
   color: white;
@@ -155,12 +150,8 @@ const SaveButton = styled.button`
   display: flex;
   align-items: center;
   gap: 6px;
-
-  &:hover {
-    background-color: #16a34a;
-  }
+  &:hover { background-color: #16a34a; }
 `;
-
 const DeleteButton = styled.button`
   background-color: #ef4444;
   color: white;
@@ -173,25 +164,28 @@ const DeleteButton = styled.button`
   display: flex;
   align-items: center;
   gap: 6px;
-
-  &:hover {
-    background-color: #dc2626;
-  }
+  &:hover { background-color: #dc2626; }
 `;
 
+// --- 모달 컴포넌트 ---
 function NewTaskModal({ onClose, onSave }) {
   const [form, setForm] = useState({
     taskTitle: "",
     taskDescription: "",
-    taskStatus: "",
-    taskUrgency: "",
+    taskStatus: "대기 중",
+    taskUrgency: "보통",
     taskManagerId: "",
     taskStartDate: "",
     taskEndDate: "",
+    taskProgress: 0,
   });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+  
+  const handleSelectChange = (selectedOption, actionMeta) => {
+    setForm({ ...form, [actionMeta.name]: selectedOption.value });
   };
 
   const handleSubmit = () => {
@@ -202,30 +196,18 @@ function NewTaskModal({ onClose, onSave }) {
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
         <ModalHeader><h2>새 일감 생성</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
-        
-        {/* ✅ 누락되었던 '일감 이름' 입력 필드 추가 */}
         <FormGroup>
           <FormLabel>일감 이름</FormLabel>
           <FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} />
         </FormGroup>
-
-        {/* ✅ 누락되었던 '일감 설명' 입력 필드 추가 */}
         <FormGroup>
           <FormLabel>일감 설명</FormLabel>
           <FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} />
         </FormGroup>
-        
         <FormGroup>
           <FormLabel>일감 상태</FormLabel>
-          <FormSelect name="taskStatus" value={form.taskStatus} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="진행 중">진행 중</option>
-            <option value="완료">완료</option>
-            <option value="검토 중">검토 중</option>
-            <option value="대기 중">대기 중</option>
-          </FormSelect>
+          <Select name="taskStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.taskStatus)} />
         </FormGroup>
-
         <FormGroup>
           <FormLabel>시작일</FormLabel>
           <FormInput type="date" name="taskStartDate" value={form.taskStartDate} onChange={handleChange} />
@@ -234,30 +216,18 @@ function NewTaskModal({ onClose, onSave }) {
           <FormLabel>종료일</FormLabel>
           <FormInput type="date" name="taskEndDate" value={form.taskEndDate} onChange={handleChange} />
         </FormGroup>
-
         <FormGroup>
           <FormLabel>우선순위</FormLabel>
-          <FormSelect name="taskUrgency" value={form.taskUrgency} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="긴급">긴급</option>
-            <option value="높음">높음</option>
-            <option value="보통">보통</option>
-            <option value="낮음">낮음</option>
-          </FormSelect>
+          <Select name="taskUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.taskUrgency)} />
         </FormGroup>
-        
-        {/* ✅ 누락되었던 '담당자' 선택 필드 추가 */}
         <FormGroup>
           <FormLabel>담당자</FormLabel>
-          <FormSelect name="taskManagerId" value={form.taskManagerId} onChange={handleChange}>
-            <option value="">선택</option>
-            <option value="mimi">mimi</option>
-            <option value="cheolsu">cheolsu</option>
-          </FormSelect>
+          <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} placeholder="담당자 선택..."/>
         </FormGroup>
-
-        
-
+        <FormGroup>
+          <FormLabel>진행도: {form.taskProgress || 0}%</FormLabel>
+          <FormInput type="range" name="taskProgress" min="0" max="100" step="10" value={form.taskProgress || 0} onChange={handleChange} />
+        </FormGroup>
         <ModalFooter>
           <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
           <DeleteButton onClick={onClose}>× 취소</DeleteButton>
@@ -267,24 +237,27 @@ function NewTaskModal({ onClose, onSave }) {
   );
 }
 
-
 function TaskDetailModal({ task, onClose, onUpdate, onDelete }) {
   const [form, setForm] = useState(task);
+  useEffect(() => { setForm(task); }, [task]);
+  
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  useEffect(() => { setForm(task); }, [task]); // ✅ 부모로부터 받은 task가 바뀔 때 form 상태 동기화
+  
+  const handleSelectChange = (selectedOption, actionMeta) => {
+    setForm({ ...form, [actionMeta.name]: selectedOption.value });
+  };
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
         <ModalHeader><h2>일감 상세보기</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
-        
         <FormGroup><FormLabel>일감 이름</FormLabel><FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} /></FormGroup>
         <FormGroup><FormLabel>일감 설명</FormLabel><FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} /></FormGroup>
-        <FormGroup><FormLabel>담당자</FormLabel><FormSelect name="taskManagerId" value={form.taskManagerId} onChange={handleChange}><option value="mimi">mimi</option><option value="cheolsu">cheolsu</option></FormSelect></FormGroup>
-
-        {/* ✅ 시작일, 종료일 입력 필드 JSX 추가 및 formatDateForInput 사용 */}
+        <FormGroup><FormLabel>담당자</FormLabel>
+          <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} value={managerOptions.find(opt => opt.value === form.taskManagerId)} />
+        </FormGroup>
         <FormGroup>
           <FormLabel>시작일</FormLabel>
           <FormInput type="date" name="taskStartDate" value={formatDateForInput(form.taskStartDate)} onChange={handleChange} />
@@ -293,11 +266,20 @@ function TaskDetailModal({ task, onClose, onUpdate, onDelete }) {
           <FormLabel>종료일</FormLabel>
           <FormInput type="date" name="taskEndDate" value={formatDateForInput(form.taskEndDate)} onChange={handleChange} />
         </FormGroup>
-
-        <FormGroup><FormLabel>일감 상태</FormLabel><FormSelect name="taskStatus" value={form.taskStatus} onChange={handleChange}><option value="진행 중">진행 중</option><option value="완료">완료</option><option value="검토 중">검토 중</option><option value="대기 중">대기 중</option></FormSelect></FormGroup>
-        <FormGroup><FormLabel>우선순위</FormLabel><FormSelect name="taskUrgency" value={form.taskUrgency} onChange={handleChange}><option value="긴급">긴급</option><option value="높음">높음</option><option value="보통">보통</option><option value="낮음">낮음</option></FormSelect></FormGroup>
-        
-        <ModalFooter><SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton><DeleteButton onClick={() => onDelete(task.taskId)}>🗑 삭제</DeleteButton></ModalFooter>
+        <FormGroup><FormLabel>일감 상태</FormLabel>
+          <Select name="taskStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.taskStatus)} />
+        </FormGroup>
+        <FormGroup><FormLabel>우선순위</FormLabel>
+          <Select name="taskUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.taskUrgency)} />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel>진행도: {form.taskProgress || 0}%</FormLabel>
+          <FormInput type="range" name="taskProgress" min="0" max="100" step="10" value={form.taskProgress || 0} onChange={handleChange} />
+        </FormGroup>
+        <ModalFooter>
+            <SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton>
+            <DeleteButton onClick={() => onDelete(task.taskId)}>🗑 삭제</DeleteButton>
+        </ModalFooter>
       </ModalWrapper>
     </ModalOverlay>
   );
@@ -418,6 +400,28 @@ const StatusPill = styled.span`
 
 const PriorityPill = styled(StatusPill)``;
 
+const ProgressBarContainer = styled.div`
+  width: 100px;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+`;
+
+const ProgressBar = styled.div`
+  height: 100%;
+  width: ${({ progress }) => progress}%;
+  background-color: #3b82f6;
+  transition: width 0.3s ease;
+`;
+
+const ProgressText = styled.span`
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+  width: 40px; /* 너비를 고정하여 정렬을 맞춤 */
+  text-align: right;
+`;
 
 const PageButton = styled.button`
   width: 28px;
@@ -498,16 +502,12 @@ function TaskMain() {
   const [pageMaker, setPageMaker] = useState(null);
   const [keyword, setKeyword] = useState("");
   const [animationClass, setAnimationClass] = useState('');
-  const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID
+  const projectId = "PJ-001";
 
-  // ✅ 일감 목록을 서버에서 불러오는 함수
   const fetchTasks = async (page = 1, searchKeyword = "") => {
     try {
       const response = await axios.get(`/project/main/project/api/${projectId}/tasks`, {
-        params: { 
-          page: page,
-          keyword: searchKeyword
-        },
+        params: { page: page, keyword: searchKeyword },
         withCredentials: true
       });
       if (response.data) {
@@ -522,31 +522,17 @@ function TaskMain() {
   }, []);
   
   const handlePageChange = (newPage) => {
-    // 현재 페이지보다 높은 페이지로 가면 '다음'으로 간주
     const direction = newPage > (pageMaker?.page || 1) ? 'next' : 'prev';
-
-    if (animationClass) return; // 애니메이션 중이면 중복 실행 방지
-
+    if (animationClass) return;
     if (direction === 'next') {
-      setAnimationClass('slide-out-left');
-      setTimeout(() => {
-        fetchTasks(newPage, keyword); // 실제 데이터 변경
-        setAnimationClass('slide-in-right');
-      }, 250);
-    } else { // direction === 'prev'
-      setAnimationClass('slide-out-right');
-      setTimeout(() => {
-        fetchTasks(newPage, keyword); // 실제 데이터 변경
-        setAnimationClass('slide-in-left');
-      }, 250);
+        setAnimationClass('slide-out-left');
+        setTimeout(() => { fetchTasks(newPage, keyword); setAnimationClass('slide-in-right'); }, 250);
+    } else {
+        setAnimationClass('slide-out-right');
+        setTimeout(() => { fetchTasks(newPage, keyword); setAnimationClass('slide-in-left'); }, 250);
     }
-
-    // 애니메이션 클래스 초기화
-    setTimeout(() => {
-      setAnimationClass('');
-    }, 500);
+    setTimeout(() => { setAnimationClass(''); }, 500);
   };
-
 
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
@@ -559,40 +545,33 @@ function TaskMain() {
       await axios.post(`/project/main/project/${projectId}/tasklist`, newTask, { withCredentials: true });
       alert("새로운 일감이 등록되었습니다.");
       setIsModalOpen(false);
-      setKeyword(""); // ✅ 검색어 초기화
-      fetchTasks(1, ""); // ✅ 전체 목록 새로고침
+      setKeyword("");
+      fetchTasks(1, "");
     } catch (error) {
       console.error("일감 생성 실패:", error);
-      // ✅ 사용자에게 실패 알림을 보여주는 코드 추가
       alert("일감 생성에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
-  // ✅ 일감 수정 (API 연동)
   const handleUpdateTask = async (updatedTask) => {
     try {
-      await axios.put(`/project/main/project/${projectId}/tasklist/${updatedTask.taskId}`, updatedTask);
-      
+      await axios.put(`/project/main/project/${projectId}/tasklist/${updatedTask.taskId}`, updatedTask, { withCredentials: true });
       alert("일감이 수정되었습니다.");
       setSelectedTask(null);
-      
-      // ✅ 수정 성공 후, 목록 전체를 다시 불러옴
       fetchTasks(pageMaker ? pageMaker.page : 1); 
-
     } catch (error) { 
       console.error("일감 수정 실패:", error); 
       alert("일감 수정에 실패했습니다.");
     }
   };
 
-  // ✅ 일감 삭제 (API 연동)
   const handleDeleteTask = async (taskId) => {
     if (window.confirm("정말로 이 일감을 삭제하시겠습니까?")) {
       try {
         await axios.delete(`/project/main/project/${projectId}/tasklist/${taskId}`);
         alert("일감이 삭제되었습니다.");
         setSelectedTask(null);
-        fetchTasks(1); // 목록 새로고침
+        fetchTasks(1);
       } catch (error) { console.error("일감 삭제 실패:", error); }
     }
   };
@@ -605,13 +584,13 @@ function TaskMain() {
           <Header>
             <TitleSection>
               <Title>일감</Title>
-            <SearchInput 
+              <SearchInput 
                 placeholder="일감 검색"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 onKeyDown={handleSearch}
               />
-              </TitleSection>
+            </TitleSection>
             <NewTaskButton onClick={() => setIsModalOpen(true)}>+ 새 일감</NewTaskButton>
           </Header>
           <TaskListWrapper className={animationClass}>
@@ -630,6 +609,10 @@ function TaskMain() {
                   <PriorityPill color={getPriorityStyle(task.taskUrgency).color} bgColor={getPriorityStyle(task.taskUrgency).bgColor}>
                     {task.taskUrgency}
                   </PriorityPill>
+                  <ProgressBarContainer>
+                    <ProgressBar progress={task.taskProgress || 0} />
+                  </ProgressBarContainer>
+                  <ProgressText>{task.taskProgress || 0}%</ProgressText>
                 </TaskBottomLine>
               </TaskItemRow>
             ))}
@@ -637,7 +620,6 @@ function TaskMain() {
           <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
         </ContentWrapper>
       </Container>
-
       {isModalOpen && <NewTaskModal onClose={() => setIsModalOpen(false)} onSave={handleAddTask} />}
       {selectedTask && (
         <TaskDetailModal
