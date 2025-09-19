@@ -1,74 +1,124 @@
-import React from 'react'
-import styled from 'styled-components'
-import NavItem from "./NavItem"
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
+import NavItem from "./NavItem";
+import { Link } from 'react-router-dom';
+import Select from 'react-select';
+import axios from 'axios';
 
-// Projectbar 컴포넌트를 중앙에 배치하기 위한 Wrapper (새로 추가)
 const CenterWrapper = styled.div`
-  display: flex; /* 플렉스박스 레이아웃 */
-  justify-content: center; /* 가로(수평) 중앙 정렬 */
-  align-items: center; /* 세로(수직) 중앙 정렬 */
-  min-height: 100vh; /* 화면 전체 높이를 차지하도록 설정 */
-  width: 100vw; /* 화면 전체 너비를 차지하도록 설정 */
-  
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;
+  min-height: 100vh; 
+  width: 100vw; 
+  gap: 20px;
 `;
-
 
 const Container = styled.div`
   width: 90%;
-  max-width: 600px; /* 최대 너비 제한 */
+  max-width: 600px; 
   background-color: #fff;
-  position: relative; /* 자식 요소에 absolute를 사용한다면 필요 */
+  position: relative; 
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3개씩 배치 */
-  grid-template-rows: repeat(2, auto); /* 2열로 배치 */
+  grid-template-columns: repeat(3, 1fr); 
+  grid-template-rows: repeat(2, auto); 
   gap: 10px;
   padding: 15px; 
   border: #4287C4 1px solid;
-  border-radius: 10px; /* 모서리를 둥글게 */
+  border-radius: 10px; 
 `;
 
 const StyledLink = styled(Link)`
   text-decoration: none;
-  
   color: #333; 
   padding: 3px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  flex-direction: column; /* 아이콘 위, 텍스트 아래 */
-  font-size: 10px; /* 글자 크기 줄임 */
- &:hover {
-  background-color: #f0f0f0; /* 배경색에 맞춰 hover 색상 변경 */
-  border-radius: 5px; /* hover 시 둥근 모서리 추가 */
-}
-`
+  flex-direction: column; 
+  font-size: 10px; 
+  &:hover {
+    background-color: #f0f0f0;
+    border-radius: 5px;
+  }
+`;
+
+const customStyles = {
+  control: (provided) => ({
+    ...provided,
+    border: '1px solid #ccc',
+    borderRadius: '6px',
+    minHeight: '36px',
+  }),
+  menu: (provided) => ({ ...provided, zIndex: 9999 }),
+};
 
 function Projectbar() {
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await axios.get('/project/org/myproject/api/projects', { withCredentials: true });
+      // ✅ 배열인지 확인, 아니면 빈 배열로 초기화
+      setProjects(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("프로젝트 불러오기 실패:", err);
+      setProjects([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  // ✅ 안전하게 map 처리
+  const projectOptions = Array.isArray(projects)
+    ? projects.map(proj => ({
+        value: proj.projectId,
+        label: proj.projectName
+      }))
+    : [];
+
+  const handleProjectChange = (selected) => {
+    setSelectedProject(selected);
+  };
+
+  const projectId = selectedProject?.value;
+
   return (
-    <CenterWrapper> 
+    <CenterWrapper>
+      <Select
+        options={projectOptions}
+        value={selectedProject}
+        onChange={handleProjectChange}
+        styles={customStyles}
+        placeholder="프로젝트 선택..."
+      />
+
       <Container>
-        <StyledLink to="/issue/Main">
+        <StyledLink to={projectId ? `/issue/Main?projectId=${projectId}` : '/issue/Main'}>
           <NavItem icon="fa-solid fa-circle-exclamation" name="ISSUE" />
         </StyledLink>
-        <StyledLink to="/gant/Main">
+        <StyledLink to={projectId ? `/gant/Main?projectId=${projectId}` : '/gant/Main'}>
           <NavItem icon="fa-solid fa-chart-pie" name="GANT" />
         </StyledLink>
-        <StyledLink to="/calendar/Main">
+        <StyledLink to={projectId ? `/calendar/Main?projectId=${projectId}` : '/calendar/Main'}>
           <NavItem icon="fa-solid fa-calendar" name="CALENDAR" />
         </StyledLink>
-        <StyledLink to="/task/Main">
+        <StyledLink to={projectId ? `/task/Main?projectId=${projectId}` : '/task/Main'}>
           <NavItem icon="fa-solid fa-box" name="TASK" />
         </StyledLink>
-        <StyledLink to="/report/Main">
+        <StyledLink to={projectId ? `/report/Main?projectId=${projectId}` : '/report/Main'}>
           <NavItem icon="fa-solid fa-pen-to-square" name="REPORT" />
         </StyledLink>
-        <StyledLink to="/meeting/Main">
+        <StyledLink to={projectId ? `/meeting/Main?projectId=${projectId}` : '/meeting/Main'}>
           <NavItem icon="fa-solid fa-file-lines" name="Meeting" />
         </StyledLink>
       </Container>
     </CenterWrapper>
-  )
+  );
 }
 
-export default Projectbar
+export default Projectbar;
