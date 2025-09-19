@@ -181,8 +181,8 @@
         window.search_list = search_list; // pagination.jsp에서 호출 가능하도록
 
         function addNewTask() {
-            const projectId = "PJ-001";
-            const newTask = {
+        	const projectId = "${projectId}";
+        	const newTask = {
             	projectId: projectId,
                 taskTitle: document.getElementById('newTaskTitle').value,
                 taskDescription: document.getElementById('newTaskDescription').value,

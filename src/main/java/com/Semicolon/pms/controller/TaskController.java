@@ -42,7 +42,6 @@ public class TaskController {
     public String getTaskList(@PathVariable("projectId") String projectId,
                               @RequestParam(value = "page", defaultValue = "1") int page,
                               @RequestParam(value = "perPageNum", defaultValue = "10") int perPageNum,
-                              // 1. 받는 파라미터 이름을 'searchQuery'로 변경
                               @RequestParam(value = "searchQuery", required = false) String searchQuery,
                               Model model) {
         try {
@@ -50,13 +49,12 @@ public class TaskController {
             pageMaker.setProjectId(projectId);
             pageMaker.setPage(page);
             pageMaker.setPerPageNum(perPageNum);
-            // 2. setSearchQuery를 호출하도록 통일
             pageMaker.setSearchQuery(searchQuery); 
 
             pageMaker.setTotalCount(taskService.getTotalCountByProjectId(pageMaker));
             List<TaskDto> taskList = taskService.getTaskListByProjectId(pageMaker);
 
-            model.addAttribute("taskList", taskList);
+            model.addAttribute("taskList", taskList); // ✅ 여기 있음
             model.addAttribute("pageMaker", pageMaker);
             model.addAttribute("projectId", projectId);
 
