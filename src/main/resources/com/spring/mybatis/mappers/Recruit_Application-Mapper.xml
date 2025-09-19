@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Recruit_Application-Mapper">
+
+	<!-- 1. 특정 게시글 신청자 리스트 -->
+    <select id="selectApplicationsByRno" parameterType="int" resultType="recruit_application">
+        SELECT rno, user_id
+        FROM recruit_application
+        WHERE rno = #{rno}
+        ORDER BY user_id
+    </select>
+
+    <!-- 2. 신청자 저장 -->
+    <insert id="insertApplication" parameterType="map">
+        INSERT INTO recruit_application (rno, user_id)
+        VALUES (#{rno}, #{user_id})
+    </insert>
+
+    <!-- 3. 중복 체크 -->
+    <select id="existsApplication" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM recruit_application
+        WHERE rno = #{rno} AND user_id = #{user_id}
+    </select>
+</mapper>
+

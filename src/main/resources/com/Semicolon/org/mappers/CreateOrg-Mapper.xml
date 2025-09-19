@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.Semicolon.org.dao.CreateOrgDAO">
+	
+	<select id="isUserInAnyOrg" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM ORGANIZATION
+        WHERE INSTR(MEMBER, #{userId}) > 0
+    </select>
+	
+    <insert id="createOrganization" parameterType="com.Semicolon.org.dto.CreateOrgDTO">
+    <selectKey keyProperty="orId" resultType="String" order="BEFORE">
+        SELECT 'ORG-' || LPAD(ORGANIZATION_SEQ.NEXTVAL, 4, '0') FROM DUAL
+    </selectKey>
+    INSERT INTO ORGANIZATION (
+        OR_ID,
+        OR_NAME,
+        OR_INTRODUCE,
+        OR_IS_PUBLIC,
+        OR_MANAGER_ID,
+        OR_CREATE_DATE,
+        -- 아래 4개 컬럼 추가
+        MEMBER,
+        MEMBER_ID,
+        MEMBER_ROLE,
+        MEMBER_STATUS
+    ) VALUES (
+        #{orId},
+        #{orName},
+        #{orIntroduce},
+        #{orIsPublic},
+        #{orManagerId},
+        #{orCreateDate},
+        -- 아래 4개 값 추가
+        #{orManagerId}, -- MEMBER 컬럼에 관리자 ID 추가
+        #{orManagerId}, -- MEMBER_ID 컬럼에 관리자 ID 추가
+        '관리자',       -- MEMBER_ROLE에 기본값 '관리자' 추가
+        '활동중'        -- MEMBER_STATUS에 기본값 '활동중' 추가
+    )
+</insert>
+
+<update id="updateEngineerOrgId" parameterType="map">
+        UPDATE ENGINEER
+        SET OR_ID = #{orId}
+        WHERE USER_ID = #{userId}
+    </update>
+    
+</mapper>

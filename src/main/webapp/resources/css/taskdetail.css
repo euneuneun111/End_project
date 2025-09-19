@@ -1,0 +1,291 @@
+@charset "UTF-8";
+
+/* ==================================== */
+/* 1. Main Content Area (taskdetail specific) */
+/* ==================================== */
+/* 메인 콘텐츠 영역 (사이드바 옆) */
+.main-content {
+    /* common.css에 기본 스타일이 정의되어 있음 */
+}
+
+/* 페이지 헤더 (제목과 버튼 그룹) */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee; /* 구분선 */
+}
+
+.page-header .page-title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 0;
+}
+
+.page-header .action-buttons .btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.page-header .action-buttons .btn .fas {
+    margin-right: 8px;
+}
+
+.page-header .action-buttons .btn-primary {
+    background-color: #6A3CD7; /* 보라색 (일감 수정 버튼) */
+    color: #fff;
+}
+
+.page-header .action-buttons .btn-primary:hover {
+    background-color: #552cb0;
+}
+
+.page-header .action-buttons .btn-danger {
+    background-color: #dc3545; /* 빨간색 (일감 삭제 버튼) */
+    color: #fff;
+}
+
+.page-header .action-buttons .btn-danger:hover {
+    background-color: #c82333;
+}
+
+
+/* ==================================== */
+/* 2. Task Detail Card & Fields */
+/* ==================================== */
+/* 일감 상세 정보 카드 */
+.issue-detail-card { /* 클래스명 재사용 */
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    margin-bottom: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.detail-section {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 300px;
+    margin-bottom: 0;
+}
+
+/* 중요도와 진행도 섹션을 한 줄에 배치 */
+.detail-section.status-urgency-group {
+    display: flex;
+    gap: 20px;
+    flex: 1 1 100%;
+}
+
+.detail-section.status-urgency-group .detail-field {
+    flex: 1;
+}
+
+.detail-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+    font-size: 15px;
+}
+
+.detail-section input[type="text"],
+.detail-section textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+    box-sizing: border-box;
+    background-color: #f9f9f9; /* 읽기 전용 필드 배경색 */
+}
+
+.detail-section textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* ==================================== */
+/* 3. Comments Section */
+/* ==================================== */
+.comments-section {
+    margin-top: 30px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    flex: 1 1 100%;
+}
+
+.comments-section h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.comment-input-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.comment-input-area textarea {
+    flex-grow: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 40px;
+    outline: none;
+}
+
+.comment-input-area .btn-secondary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.comment-input-area .btn-secondary:hover {
+    background-color: #0056b3;
+}
+
+.comment-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.comment-item {
+    background-color: #f8f8f8;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #333;
+    font-size: 15px;
+}
+
+.comment-time {
+    font-size: 12px;
+    color: #888;
+    margin-left: 10px;
+}
+
+.comment-options-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.comment-options-btn:hover {
+    color: #555;
+}
+
+.comment-text {
+    margin-top: 10px;
+    color: #444;
+    line-height: 1.6;
+}
+
+/* ==================================== */
+/* 4. Form Action Buttons */
+/* ==================================== */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.form-actions .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.form-actions .btn-primary {
+    background-color: #6A3CD7;
+    color: #fff;
+}
+
+.form-actions .btn-primary:hover {
+    background-color: #552cb0;
+}
+
+.form-actions .btn-cancel {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.form-actions .btn-cancel:hover {
+    background-color: #e0e0e0;
+}
+
+/* taskdetail.jsp에서 이전에 사용되었던 링크 스타일 (현재는 사용되지 않음) */
+.task-link-wrapper {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+}
+
+.task-name-link {
+    font-size: 14px;
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.task-name-link:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.task-name-link .click-hint {
+    margin-left: 5px;
+    font-size: 12px;
+    color: #888;
+    white-space: nowrap;
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.Semicolon.pms.dao.BudgetDAO">
+
+    <resultMap id="budgetResultMap" type="com.Semicolon.pms.dto.BudgetDTO">
+        <id column="TASK_NUMBER" property="taskNumber"/>
+        <result column="BUDGET_USAGE" property="budgetUsage"/>
+        <result column="AMOUNT" property="amount"/>
+        <result column="REGISTRATION_DATE" property="date"/>
+        <result column="IS_DELETED" property="isDeleted"/>
+    </resultMap>
+
+    <select id="getAllBudgets" resultMap="budgetResultMap">
+        SELECT
+            TASK_NUMBER,
+            BUDGET_USAGE,
+            AMOUNT,
+            REGISTRATION_DATE,
+            IS_DELETED
+        FROM
+            BUDGET
+        WHERE
+            IS_DELETED = 'N'
+        ORDER BY
+            REGISTRATION_DATE DESC
+    </select>
+    
+    <insert id="insertBudget" parameterType="com.Semicolon.pms.dto.BudgetDTO">
+        INSERT INTO BUDGET (
+            TASK_NUMBER,
+            BUDGET_USAGE,
+            AMOUNT,
+            REGISTRATION_DATE,
+            IS_DELETED
+        ) VALUES (
+            #{taskNumber},
+            #{budgetUsage},
+            #{amount},
+            SYSDATE,
+            'N'
+        )
+    </insert>
+
+    <update id="updateBudget" parameterType="com.Semicolon.pms.dto.BudgetDTO">
+        UPDATE BUDGET
+        SET
+            BUDGET_USAGE = #{budgetUsage},
+            AMOUNT = #{amount},
+            REGISTRATION_DATE = SYSDATE,
+            IS_DELETED = #{isDeleted}
+        WHERE
+            TASK_NUMBER = #{taskNumber}
+    </update>
+
+    <update id="deleteBudget" parameterType="string">
+        UPDATE BUDGET
+        SET
+            IS_DELETED = 'Y'
+        WHERE
+            TASK_NUMBER = #{taskNumber}
+    </update>
+    
+    <select id="getTotalProjectBudget" parameterType="string" resultType="java.math.BigDecimal">
+        SELECT TOTAL_BUDGET
+        FROM PROJECT
+        WHERE PROJECT_ID = #{projectId}
+    </select>
+
+    <select id="getUsedProjectBudget" parameterType="string" resultType="java.math.BigDecimal">
+        SELECT NVL(SUM(AMOUNT), 0)
+        FROM BUDGET
+        WHERE PROJECT_ID = #{projectId} AND IS_DELETED = 'N'
+    </select>
+</mapper>

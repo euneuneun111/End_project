@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.Semicolon.org.dao.Member1DAO">
+
+    <resultMap id="member1ResultMap" type="com.Semicolon.org.dto.Member1DTO">
+        <result column="USERID" property="userId"/>
+        <result column="ENGID" property="engId"/>
+        <result column="MAJOR" property="major"/>
+        <result column="INTRODUCE" property="introduce"/>
+        <result column="NAME" property="name"/>
+        <result column="EMAIL" property="email"/>
+        <result column="ROLE" property="memberRole"/>
+    </resultMap>
+
+    <select id="getMemberListByOrgId" parameterType="map" resultType="com.Semicolon.org.dto.Member1DTO">
+        SELECT
+            E.ENG_ID        AS engId,
+            E.USER_ID       AS userId,
+            E.MAJOR         AS major,
+            E.INTRODUCE     AS introduce,
+            M.NAME          AS name,
+            M.EMAIL         AS email,
+            M.ROLE          AS memberRole,
+            'active'        AS status  -- 임시로 모든 멤버의 상태를 'active'로 지정
+        FROM
+            ENGINEER E
+        JOIN
+            MEMBER M ON E.USER_ID = M.USER_ID
+        WHERE
+            E.OR_ID = #{orId}
+            
+            <if test="keyword != null and keyword != ''">
+                AND (M.NAME LIKE '%' || #{keyword} || '%' OR M.USER_ID LIKE '%' || #{keyword} || '%')
+            </if>
+            
+            <if test="role != null and role != ''">
+                AND M.ROLE = #{role}
+            </if>
+            
+            <if test="status != null and status != ''">
+                AND 'active' = #{status}
+            </if>
+            
+        ORDER BY
+            M.NAME ASC
+    </select>
+    
+    <update id="updateMemberRole" parameterType="map">
+        UPDATE MEMBER
+        SET
+            ROLE = #{newRole}
+        WHERE
+            USER_ID = #{userId}
+    </update>
+
+    <update id="removeMemberFromOrg" parameterType="map">
+        UPDATE MEMBER
+        SET
+            ROLE = 'EX-MEMBER'
+        WHERE
+            USER_ID = #{userId}
+    </update>
+</mapper>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.Semicolon.pms.dao.IssueDAO">
+
+    <!-- IssueDto 객체와 DB 컬럼을 매핑하는 resultMap -->
+    <resultMap id="issueMap" type="com.Semicolon.pms.dto.IssueDto">
+        <id property="issueId" column="ISSUE_ID" />
+        <result property="projectId" column="PROJECT_ID" />
+        <result property="issueTitle" column="ISSUE_TITLE" />
+        <result property="issueContent" column="ISSUE_CONTENT" />
+        <result property="taskId" column="TASK_ID" />
+        <result property="issueStatus" column="ISSUE_STATUS" />
+        <result property="issueCreatorId" column="ISSUE_CREATOR_ID" />
+        <result property="issueRegDate" column="ISSUE_REG_DATE" />
+        <result property="issueModifyDate" column="ISSUE_MODIFY_DATE" />
+        <result property="issueDeleteDate" column="ISSUE_DELETE_DATE" />
+        <result property="issueManagerId" column="ISSUE_MANAGER_ID" />
+        <result property="issueUrgency" column="ISSUE_URGENCY" />
+        <result property="taskTitle" column="TASK_TITLE" />
+    </resultMap>
+
+    <select id="getIssueListByProjectId" parameterType="com.Semicolon.command.PageMaker" resultMap="issueMap">
+        SELECT *
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER(ORDER BY i.ISSUE_REG_DATE DESC) AS rnum,
+                i.*,
+                t.TASK_TITLE
+            FROM
+                ISSUE i
+            LEFT JOIN
+                TASK t ON i.TASK_ID = t.TASK_ID
+            WHERE
+                i.PROJECT_ID = #{projectId}
+                AND i.ISSUE_DELETE_DATE IS NULL
+                <if test="keyword != null and keyword != ''">
+                AND i.ISSUE_TITLE LIKE '%' || #{keyword} || '%'
+            </if>
+        )
+        WHERE rnum BETWEEN #{startRow} AND #{endRow} </select>
+
+    <select id="getTotalCountByProjectId" parameterType="com.Semicolon.command.PageMaker" resultType="int">
+    SELECT COUNT(*)
+    FROM ISSUE i
+    WHERE i.PROJECT_ID = #{projectId}
+    AND i.ISSUE_DELETE_DATE IS NULL
+        <if test="keyword != null and keyword != ''">
+            AND i.ISSUE_TITLE LIKE '%' || #{keyword} || '%'
+        </if>
+</select>
+
+    <!-- 새로운 이슈 등록 -->
+    <insert id="insertNewIssue" parameterType="com.Semicolon.pms.dto.IssueDto">
+        INSERT INTO ISSUE (
+            ISSUE_ID,
+            PROJECT_ID,
+            ISSUE_TITLE,
+            ISSUE_CONTENT,
+            TASK_ID,
+            ISSUE_STATUS,
+            ISSUE_CREATOR_ID,
+            ISSUE_REG_DATE,
+            ISSUE_MODIFY_DATE,
+            ISSUE_MANAGER_ID,
+            ISSUE_URGENCY
+        ) VALUES (
+            'ISSUE-' || LPAD(ISSUE_SEQ.NEXTVAL, 3, '0'),
+            #{projectId},
+            #{issueTitle},
+            #{issueContent},
+            #{taskId},
+            #{issueStatus},
+            #{issueCreatorId},
+            SYSDATE,
+            SYSDATE,
+            #{issueManagerId},
+            #{issueUrgency}
+        )
+    </insert>
+    
+    <!-- issueId를 사용하여 이슈 상세 정보를 조회하는 쿼리 -->
+    <select id="getIssueById" parameterType="String" resultMap="issueMap">
+        SELECT
+            i.*,
+            t.TASK_TITLE
+        FROM
+            ISSUE i
+        LEFT JOIN
+            TASK t ON i.TASK_ID = t.TASK_ID
+        WHERE
+            i.ISSUE_ID = #{issueId, jdbcType=VARCHAR}
+    </select>
+
+    <!-- 이슈 수정 -->
+    <update id="updateIssue" parameterType="com.Semicolon.pms.dto.IssueDto">
+        UPDATE ISSUE
+        SET
+            ISSUE_TITLE = #{issueTitle},
+            ISSUE_CONTENT = #{issueContent},
+            ISSUE_STATUS = #{issueStatus},
+            ISSUE_URGENCY = #{issueUrgency},
+            ISSUE_MODIFY_DATE = SYSDATE
+        WHERE ISSUE_ID = #{issueId}
+    </update>
+
+    <!-- 이슈 논리적 삭제 (Soft Delete): 실제 데이터를 삭제하지 않고 삭제일자를 업데이트합니다. -->
+    <update id="deleteIssue" parameterType="String">
+        UPDATE ISSUE
+        SET
+            ISSUE_DELETE_DATE = SYSDATE
+        WHERE ISSUE_ID = #{issueId}
+    </update>
+</mapper>

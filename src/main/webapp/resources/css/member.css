@@ -1,0 +1,180 @@
+/* member.css */
+
+/* 메인 레이아웃 및 컨테이너 스타일 */
+.main-layout-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    background-color: #f8f9fa; /* 배경색 설정 */
+}
+
+/* 팀원 목록 컨테이너 */
+.member-list-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+/* 헤더 스타일 */
+.member-list-header {
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.member-list-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #333333;
+}
+
+/* 검색 및 필터링 바 스타일 */
+.search-filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-filter-bar input[type="text"] {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+}
+
+.search-filter-bar select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    min-width: 120px;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+}
+
+/* 팀원 목록 테이블 스타일 */
+.member-list-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.member-list-table th,
+.member-list-table td {
+    text-align: center; /* 가운데 정렬로 변경 */
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+.member-list-table th {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.member-list-table td {
+    font-size: 1rem;
+    color: #495057;
+}
+
+/* 링크 스타일 */
+.member-list-table td a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.member-list-table td a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* 상태 배지 스타일 - JSP에서 분리하여 추가된 부분 */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* '활동중' 상태 배지 */
+.status-active {
+    background-color: #28a745; /* 초록색 */
+}
+
+/* '휴식' 상태 배지 */
+.status-away {
+    background-color: #ffc107; /* 노란색 */
+}
+
+/* '알 수 없음' 상태 배지 - 새로운 스타일 추가 */
+.status-unknown {
+    background-color: #6c757d; /* 회색 */
+}
+
+/* 팀원 관리 액션 버튼 및 드롭다운 스타일 */
+.member-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.member-actions select,
+.member-actions button {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.member-actions button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.member-actions button:hover {
+    background-color: #dc3545;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .member-list-container {
+        padding: 1rem;
+    }
+
+    .member-list-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .member-list-table th,
+    .member-list-table td {
+        padding: 0.75rem;
+    }
+    
+    .search-filter-bar {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .search-filter-bar input[type="text"],
+    .search-filter-bar select {
+        width: 100%;
+    }
+}

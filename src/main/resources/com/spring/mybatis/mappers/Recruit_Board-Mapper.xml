@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Recruit_Board-Mapper">
+	<sql id="search">
+		<if test="searchType == 't'.toString()">
+			and title like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'w'.toString()">
+			and writer like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'c'.toString()">
+			and content like '%'||#{keyword}||'%'			
+		</if>
+		<if test="searchType == 'tc'.toString()">
+			and (
+			title like '%'||#{keyword}||'%'
+			or
+			content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+		<if test="searchType == 'cw'.toString()">
+			and (
+			writer like '%'||#{keyword}||'%'
+			or
+			content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+		<if test="searchType == 'tcw'.toString()">
+			and (
+			title like '%'||#{keyword}||'%'
+			or
+			writer like '%'||#{keyword}||'%'
+			or
+			content like '%'||#{keyword}||'%'						
+			)			
+		</if>
+	</sql>
+	<select id="selectSearchBoardList" parameterType="pageMaker" resultType="recruit_board">
+		select
+		*
+		from
+		recruit_board
+		where rno is not null  			  	
+		<include refid="search" />
+		order by rno desc
+	</select>
+	
+	<select id="selectSearchBoardListCount" parameterType="pageMaker" resultType="int">
+		select
+		count(*)
+		from
+		recruit_board
+		where rno is not null  			  	
+		<include refid="search" />		
+	</select>
+		
+	<select id="selectBoardByRno" parameterType="int"  resultType="recruit_board">
+		select * 
+		from recruit_board 
+		where rno=#{rno}
+	</select>
+	
+	<insert id="insertBoard" parameterType="recruit_board">
+		insert 
+		into 
+		recruit_board(rno,title,or_id,content)
+		values
+		(#{rno},#{title},#{or_id},#{content})
+	</insert>
+	
+	<update id="updateBoard" parameterType="recruit_board">
+		update 
+		recruit_board 
+		set 
+		title=#{title}, content=#{content}, update_date=sysdate 
+		where rno=#{rno}
+	</update>
+	
+	<delete id="deleteBoard" parameterType="int">
+		delete 
+		from recruit_board
+		where rno=#{rno}
+	</delete>
+	
+	<update id="increaseViewCnt" parameterType="int">
+		update 
+		recruit_board 
+		set 
+		view_cnt=view_cnt+1 
+		where rno=#{rno}
+	</update>
+	
+	<select id="selectBoardSeqNext" resultType="int">
+		select recruit_board_seq.nextval as rno from dual
+	</select>
+</mapper>
+
+
+
+
+

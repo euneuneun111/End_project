@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.Semicolon.pms.dao.IssueReplyDAO">
+
+    <select id="selectReplyList" resultType="com.Semicolon.pms.dto.IssueReplyDTO">
+        SELECT
+            reply_number    AS replyNumber,
+            issue_id        AS issueId,
+            userid          AS userId,
+            reply_content   AS replyContent,
+            reg_date        AS regDate,
+            update_date     AS updateDate,
+            eng_id          AS engId,
+            group_id        AS groupId
+        FROM
+            recruit_reply2
+        WHERE
+            issue_id = #{issueId}
+        ORDER BY
+            reg_date ASC
+    </select>
+
+<insert id="insertReply" parameterType="com.Semicolon.pms.dto.IssueReplyDTO">
+    INSERT INTO recruit_reply2 (
+        reply_number,
+        issue_id,
+        userid,
+        reply_content,
+        reg_date,
+        update_date
+    ) VALUES (
+        'REPLY-' || RECRUIT_REPLY2_SEQ.NEXTVAL,
+        #{issueId},
+        #{userId},
+        #{replyContent},
+        SYSDATE,
+        SYSDATE
+        )
+</insert>
+
+    <update id="updateReply" parameterType="com.Semicolon.pms.dto.IssueReplyDTO">
+        UPDATE
+            recruit_reply2 SET
+            reply_content = #{replyContent},
+            update_date = SYSDATE
+        WHERE
+            reply_number = #{replyNumber}
+    </update>
+
+    <delete id="deleteReply" parameterType="string">
+        DELETE FROM
+            recruit_reply2 WHERE
+            reply_number = #{replyNumber}
+    </delete>
+    
+    <delete id="deleteRepliesByIssueId" parameterType="string">
+        DELETE FROM
+            recruit_reply2 WHERE
+            issue_id = #{issueId}
+    </delete>
+
+</mapper>

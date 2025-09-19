@@ -1,0 +1,155 @@
+/* resources/css/ganttchart.css */
+@charset "UTF-8";
+
+/* ==================================== */
+/* 1. Main Content Area (ganttchart specific) */
+/* ==================================== */
+.main-content {
+    /* common.css에 기본 스타일이 정의되어 있음 */
+}
+
+.content-area {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* ==================================== */
+/* 2. Gantt Controls (Add Button) */
+/* ==================================== */
+.gantt-controls {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.add-task-btn { /* '새 일감' 버튼과 유사하게 스타일링 */
+    background-color: #6A3CD7;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.add-task-btn .fas {
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+.add-task-btn:hover {
+    background-color: #552cb0;
+}
+
+/* ==================================== */
+/* 3. Modal Styles (common.css에 정의된 것을 활용하거나 여기에 추가) */
+/* ==================================== */
+/* 모달 오버레이 */
+.modal-overlay {
+    display: none; /* 기본적으로 숨김 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+/* 모달 내용 */
+.modal {
+    display: none; /* 기본적으로 숨김 */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+    box-sizing: border-box;
+}
+
+.modal h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 22px;
+}
+
+.modal label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.modal input[type="text"],
+.modal input[type="date"],
+.modal textarea,
+.modal select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.modal textarea {
+    resize: vertical; /* 세로 크기 조절 가능 */
+    min-height: 80px;
+}
+
+.modal-buttons {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.modal-buttons .confirm-btn {
+    background-color: #6A3CD7;
+    color: #fff;
+}
+
+.modal-buttons .confirm-btn:hover {
+    background-color: #552cb0;
+}
+
+.modal-buttons .cancel-btn {
+    background-color: #f0f0f0;
+    color: #555;
+}
+
+.modal-buttons .cancel-btn:hover {
+    background-color: #e0e0e0;
+}

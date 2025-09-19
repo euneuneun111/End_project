@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Funding-Mapper">
+	<sql id="search">
+		<if test="searchType == 't'.toString()">
+			and title like '%'||#{keyword}||'%'
+		</if>
+		<if test="searchType == 'w'.toString()">
+			and writer like '%'||#{keyword}||'%'
+		</if>
+		<if test="searchType == 'c'.toString()">
+			and content like '%'||#{keyword}||'%'
+		</if>
+		<if test="searchType == 'tc'.toString()">
+			and (
+			title like '%'||#{keyword}||'%'
+			or
+			content like
+			'%'||#{keyword}||'%'
+			)
+		</if>
+		<if test="searchType == 'cw'.toString()">
+			and (
+			writer like '%'||#{keyword}||'%'
+			or
+			content like
+			'%'||#{keyword}||'%'
+			)
+		</if>
+		<if test="searchType == 'tcw'.toString()">
+			and (
+			title like '%'||#{keyword}||'%'
+			or
+			writer like
+			'%'||#{keyword}||'%'
+			or
+			content like '%'||#{keyword}||'%'
+			)
+		</if>
+	</sql>
+
+	<select id="selectSearchFundingList" resultType="funding">
+		select
+		*
+		from
+		FUNDING
+		where
+		fno is not null
+		<include refid="search" />
+		order by fno desc
+	</select>
+	<select id="selectSearchFundingListCount" resultType="int">
+		select
+		count(*)
+		from
+		FUNDING
+		where fno is not null
+		<include refid="search" />
+	</select>
+
+	<select id="selectFundingByFno" parameterType="int"
+		resultType="funding">
+		select *
+		from FUNDING
+		where fno=#{fno}
+	</select>
+
+	<select id="selectCountUsedByImage" resultType="int">
+		select count(*)
+		from FUNDING
+		where content like '%'||#{imageFile}||'%'
+	</select>
+
+	<select id="selectFundingSeqNext" resultType="int">
+		select
+		FUNDING_seq.nextval as fno from dual
+	</select>
+
+	<insert id="insertFunding" parameterType="funding">
+		INSERT INTO
+		FUNDING(fno, title, tgMoney, startDate, endDate, content,
+		writer)
+		VALUES (
+		#{fno}, #{title}, #{tgMoney},
+		#{startDate},
+		#{endDate},
+		#{content}, #{writer}
+		)
+	</insert>
+
+
+	<update id="increaseViewCnt" parameterType="int">
+		update
+		FUNDING
+		set
+		viewcnt=viewcnt+1
+		where fno=#{fno}
+	</update>
+
+
+	<update id="updateFunding" parameterType="funding">
+    update FUNDING
+    set
+        title = #{title},
+        tgMoney = #{tgMoney},
+        startDate = #{startDate},
+        endDate = #{endDate},
+        content = #{content},
+        updatedate = sysdate
+    where fno = #{fno}
+</update>
+
+	<delete id="deleteFunding" parameterType="int">
+		DELETE FROM FUNDING
+		WHERE fno = #{fno}
+	</delete>
+
+	<select id="selectListOrderBy" parameterType="map"
+		resultType="funding">
+		select *
+		from FUNDING
+		where fno is not null
+		order by
+		${orderBy}
+	</select>
+
+
+	<!-- 좋아요 여부 확인 -->
+	<select id="countHeart" parameterType="heart" resultType="int">
+		SELECT COUNT(*) FROM heart
+		WHERE fno = #{fno} AND user_id = #{user_id}
+	</select>
+
+	<!-- 좋아요 등록 -->
+	<insert id="insertHeart" parameterType="heart">
+		INSERT INTO heart (fno, user_id) VALUES (#{fno}, #{user_id})
+	</insert>
+
+	<!-- 좋아요 취소 -->
+	<delete id="deleteHeart" parameterType="heart">
+		DELETE FROM heart WHERE fno = #{fno} AND user_id = #{user_id}
+	</delete>
+
+	<!-- 펀딩별 좋아요 개수 조회 -->
+	<select id="selectHeartCountByFunding" parameterType="int"
+		resultType="int">
+		SELECT COUNT(*) FROM heart WHERE fno = #{fno}
+	</select>
+</mapper>
+
+
+
+
+

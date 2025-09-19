@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="GanttMapper">
+
+    <select id="getGanttDataByProjectId" resultType="com.Semicolon.pms.dto.GanttDto" parameterType="java.lang.String">
+        SELECT
+            TASK_ID             AS taskId,
+            PROJECT_ID          AS projectId,
+            GANTT_TITLE         AS ganttTitle,
+            GANTT_MANAGER_ID    AS ganttManagerId,
+            GANTT_START_DATE    AS ganttStartDate,
+            GANTT_END_DATE      AS ganttEndDate,
+            GANTT_MODIFY_DATE   AS ganttModifyDate
+        FROM
+            GANTT
+        WHERE
+            PROJECT_ID = #{projectId}
+    </select>
+
+    <insert id="insertNewGantt" parameterType="com.Semicolon.pms.dto.GanttDto">
+        INSERT INTO GANTT (
+            GANTT_ID,
+            TASK_ID,          -- Nullable
+            PROJECT_ID,       -- Nullable
+            GANTT_TITLE,      -- Not Null
+            GANTT_MANAGER_ID, -- Not Null
+            GANTT_START_DATE, -- Not Null
+            GANTT_END_DATE,   -- Not Null
+            GANTT_REG_DATE,   -- Not Null
+            GANTT_MODIFY_DATE -- Nullable
+        ) VALUES (
+            'GANTT-' || LPAD(GANTT_SEQ.NEXTVAL, 3, '0'),
+            #{taskId, jdbcType=VARCHAR},
+            #{projectId, jdbcType=VARCHAR},
+            #{ganttTitle, jdbcType=VARCHAR},
+            #{ganttManagerId, jdbcType=VARCHAR},
+            #{ganttStartDate, jdbcType=DATE},
+            #{ganttEndDate, jdbcType=DATE},
+            SYSDATE,
+            SYSDATE
+        )
+    </insert>
+
+    <update id="updateGanttByTask" parameterType="com.Semicolon.pms.dto.GanttDto">
+        UPDATE GANTT
+           SET GANTT_TITLE = #{ganttTitle, jdbcType=VARCHAR},
+               GANTT_MANAGER_ID = #{ganttManagerId, jdbcType=VARCHAR},
+               GANTT_START_DATE = #{ganttStartDate, jdbcType=DATE},
+               GANTT_END_DATE = #{ganttEndDate, jdbcType=DATE},
+               GANTT_MODIFY_DATE = SYSDATE
+         WHERE TASK_ID = #{taskId}
+    </update>
+
+    <delete id="deleteGanttByTaskId" parameterType="java.lang.String">
+        DELETE FROM GANTT
+         WHERE TASK_ID = #{taskId}
+    </delete>
+
+</mapper>

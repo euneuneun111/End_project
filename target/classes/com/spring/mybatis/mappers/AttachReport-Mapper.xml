@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AttachReport-Mapper">
+
+	<select id="selectAttachReportByRno" resultType="attachreport">
+		SELECT
+		arno,
+		uploadpath AS uploadPath,
+		filename AS fileName,
+		filetype AS fileType,
+		rno,
+		attacher
+		FROM attachreport
+		WHERE rno = #{rno}
+	</select>
+
+	<select id="selectAttachReportByArno" resultType="attachreport">
+		SELECT *
+		FROM attachreport
+		WHERE arno = #{arno}
+	</select>
+
+	<insert id="insertAttach" parameterType="report">
+		INSERT INTO attachreport (
+		arno, uploadpath, filename, filetype, rno, attacher
+		) VALUES (
+		attachreport_seq.nextval, #{uploadPath}, #{fileName}, #{fileType}, #{rno}, #{attacher}
+		)
+	</insert>
+
+	<delete id="deleteAttach" parameterType="int">
+		DELETE FROM attachreport WHERE arno = #{arno}
+	</delete>
+
+	<delete id="deleteAllAttach" parameterType="int">
+		DELETE FROM attachreport WHERE rno = #{rno}
+	</delete>
+
+</mapper>

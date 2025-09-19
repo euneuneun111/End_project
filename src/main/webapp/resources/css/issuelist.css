@@ -1,0 +1,193 @@
+@charset "UTF-8";
+
+/* ==================================== */
+/* 1. Main Content Area (issuelist specific) */
+/* ==================================== */
+/* common.css에서 기본 스타일이 정의되므로, 여기서는 특화된 오버라이드만 */
+.main-content {
+    /* common.css에 flex-grow, padding, background-color, box-shadow, border-radius가 정의되어 있음 */
+    /* 필요시 이슈 목록 페이지의 main-content에 추가적인 스타일 정의 */
+}
+
+/* 메인 콘텐츠 내 실제 내용 영역 */
+.content-area {
+    background-color: #ffffff; /* 컨텐츠 영역 배경색 (common.css의 main-content와 중복될 수 있음, 확인 필요) */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    flex-grow: 1; /* 남은 공간을 채우도록 */
+    display: flex;
+    flex-direction: column;
+    /* font-size, color, text-align 초기화는 common.css나 body에서 처리하는 것이 좋습니다. */
+    position: relative; /* 모달 때문에 필요 (common.css에 모달이 있으므로 이 부분은 필요 없을 수도 있음) */
+}
+
+/* 페이지 제목 (이슈) */
+.page-title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* ==================================== */
+/* 2. Issue Controls (Search Bar & Create Button) */
+/* ==================================== */
+.issue-controls {
+    display: flex; /* 검색창과 버튼을 가로로 정렬 */
+    justify-content: space-between; /* 양 끝 정렬 */
+    align-items: center; /* 수직 가운데 정렬 */
+    margin-bottom: 20px; /* 아래 여백 */
+}
+
+/* 검색 바 스타일 */
+.search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 300px; /* 검색창 너비 */
+}
+
+.search-bar .search-icon {
+    position: absolute;
+    left: 15px;
+    color: #aaa;
+    font-size: 16px;
+}
+
+.search-bar input[type="text"] {
+    width: 100%;
+    padding: 10px 10px 10px 40px; /* 아이콘 공간 확보를 위한 왼쪽 패딩 */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #333;
+    outline: none; /* 포커스 시 외곽선 제거 */
+}
+
+.search-bar input[type="text"]::placeholder {
+    color: #bbb;
+}
+
+/* 새 이슈 생성 버튼 스타일 */
+.create-issue-btn {
+    background-color: #6A3CD7; /* 보라색 배경 */
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.create-issue-btn .fas {
+    margin-right: 8px; /* 아이콘과 텍스트 사이 간격 */
+    font-size: 14px;
+}
+
+.create-issue-btn:hover {
+    background-color: #552cb0; /* 호버 시 색상 변경 */
+}
+
+/* ==================================== */
+/* 3. Issue List Table */
+/* ==================================== */
+/* 이슈 목록 테이블 컨테이너 */
+.issue-list-container {
+    flex-grow: 1; /* 테이블이 남은 공간을 채우도록 */
+    overflow-x: auto; /* 테이블 내용이 길어지면 가로 스크롤 */
+    /* 페이지네이션이 없으므로 margin-bottom 조정 */
+    margin-bottom: 0;
+    
+    /* 세로 스크롤이 필요하다면 여기에 추가 */
+    max-height: calc(100vh - 300px); /* 예시: 뷰포트 높이에서 헤더, 푸터, 기타 요소 제외 */
+    overflow-y: auto; /* 내용이 넘치면 세로 스크롤바 생성 */
+}
+
+/* 이슈 테이블 스타일 */
+.issue-table {
+    width: 100%;
+    border-collapse: collapse; /* 테이블 셀 경계선 병합 */
+    font-size: 14px;
+    color: #333;
+    background-color: #ffffff; /* 테이블 배경색 */
+}
+
+.issue-table th, .issue-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0; /* 셀 하단 경계선 */
+}
+
+.issue-table th {
+    background-color: #f8f8f8; /* 헤더 배경색 */
+    font-weight: bold;
+    color: #555;
+    white-space: nowrap; /* 헤더 텍스트 줄바꿈 방지 */
+}
+
+/* 이슈 제목 링크 */
+.issue-title-link {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.issue-title-link:hover {
+    color: #6A3CD7; /* 호버 시 보라색 */
+    text-decoration: underline;
+}
+
+/* 담당자 아바타 */
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%; /* 원형으로 표시 */
+    object-fit: cover; /* 이미지 비율 유지 */
+    vertical-align: middle; /* 텍스트와 수직 정렬 */
+}
+
+/* 상태 아이콘 (테이블 첫 번째 열) */
+.status-icon {
+    font-size: 16px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+/* 이미지에 맞게 색상 정의 (한글 상태명과 일치시켜야 함) */
+.status-icon.진행중 { color: #5cb85c; } /* 녹색 */
+.status-icon.완료 { color: #5bc0de; } /* 파란색 */
+.status-icon.검토중 { color: #f0ad4e; } /* 주황색 */
+.status-icon.대기중 { color: #d9534f; } /* 빨간색 */
+
+
+/* 상태 배지 (테이블 상태 열) */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
+
+/* 이미지에 맞게 색상 정의 (한글 상태명과 일치시켜야 함) */
+.status-badge.진행중-badge { background-color: #5cb85c; }
+.status-badge.완료-badge { background-color: #5bc0de; }
+.status-badge.검토중-badge { background-color: #f0ad4e; }
+.status-badge.대기중-badge { background-color: #d9534f; }
+
+
+/* ==================================== */
+/* 4. Pagination & Modal Styles (Removed/Moved) */
+/* ==================================== */
+/* 페이지네이션 스타일은 제거됩니다. */
+/* .pagination { display: none; } */
+
+/* 모달 관련 스타일은 common.css로 이동했으므로 여기서는 제거됩니다. */
+/* .modal, .modal-overlay 등은 common.css 참조 */

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AdminReport-Mapper">
+
+	<!-- 신고 등록 -->
+	<insert id="insertReport" parameterType="adminreport">
+		INSERT INTO admin_report
+		(report_id, fno, reason, content, report_date,  writer)
+		VALUES
+		(admin_report_seq.NEXTVAL, #{fno}, #{reason}, #{content}, #{reportDate}, #{writer})
+	</insert>
+
+	<!-- 신고 상세 조회 -->
+	<select id="selectReportById" parameterType="int"
+		resultType="adminreport">
+		SELECT report_id AS reportId,
+		fno,
+		writer,
+		reason,
+		content,
+		report_date AS reportDate
+	
+		FROM admin_report
+		WHERE report_id = #{reportId}
+	</select>
+
+	<!-- 신고 전체 목록 -->
+	<select id="selectAdminReportList" resultType="adminreport">
+		SELECT report_id AS reportId,
+		fno,
+		writer,
+		reason,
+		content,
+		report_date AS reportDate
+		
+		FROM admin_report
+		ORDER BY report_date DESC
+	</select>
+
+
+	<!-- 신고 삭제 -->
+	<delete id="deleteReport" parameterType="int">
+		DELETE FROM admin_report
+		WHERE report_id = #{reportId}
+	</delete>
+
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Member-Mapper">
+
+
+	<select id="selectMemberByID" parameterType="str"
+		resultType="member">
+		select *
+		from member
+		where user_id=#{user_id}
+	</select>
+
+	<insert id="insertMember" parameterType="member">
+		insert into
+		member(user_id, user_pwd, name, email)
+		values(#{user_id}, #{user_pwd},
+		#{name}, #{email})
+	</insert>
+
+	<update id="updateMember" parameterType="member">
+		update member
+		set user_pwd=#{user_pwd}, name=#{name}, email=#{email}
+		where
+		user_id=#{user_id}
+	</update>
+
+	<delete id="deleteMember" parameterType="str">
+		delete
+		from member
+		where
+		user_id=#{user_id}
+	</delete>
+
+	<insert id="insertAuthorities">
+		insert into
+		authority(user_id,authority)
+		VALUES(
+		#{user_id},
+		CASE
+		WHEN #{authorities[0]} = '2' THEN 'ROLE_ENG'
+		WHEN #{authorities[0]} = '1' THEN 'ROLE_SPONSOR'
+		END
+		)
+	</insert>
+
+	<delete id="deleteAllAuthorityById">
+		delete
+		from authority
+		where
+		user_id = #{user_id} and authority!='ROLE_ADMIN'
+	</delete>
+
+	<select id="selectAuthoritiesById" resultType="str">
+		select role
+		from
+		authority_view
+		where id=#{id}
+	</select>
+
+	<!-- 닉네임 검색 -->
+	<select id="selectNicknamesByKeyword" parameterType="string"
+		resultType="string">
+		SELECT name
+		FROM member
+		WHERE name LIKE #{keyword}
+	</select>
+</mapper>

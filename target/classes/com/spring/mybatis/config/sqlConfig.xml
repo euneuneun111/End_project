@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<typeAliases>
+		<typeAlias type="java.lang.String" alias="str" />
+		<typeAlias type="java.lang.Integer" alias="int" />
+
+		<typeAlias type="com.Semicolon.pms.dto.TaskDto" alias="task" />
+		<typeAlias type="com.Semicolon.pms.dto.IssueDto"
+			alias="issue" />
+		<typeAlias type="com.Semicolon.pms.dto.IssueReplyDTO"
+			alias="issuereply" />
+		<typeAlias type="com.Semicolon.pms.dto.CalendarDto"
+			alias="Calendar" />
+		<typeAlias type="com.Semicolon.pms.dto.GanttDto"
+			alias="Gantt" />
+		<typeAlias type="com.Semicolon.org.dto.ProjectOrgDTO"
+			alias="ProjectOrg" />
+		<typeAlias type="com.Semicolon.org.dto.CreateOrgDTO"
+			alias="CreateOrg" />
+		<typeAlias type="com.Semicolon.org.dto.OrgDetailDTO"
+			alias="OrgDetail" />
+		<typeAlias type="com.Semicolon.org.dto.Member1DTO"
+			alias="Member1" />
+
+		<typeAlias type="com.Semicolon.cmnt.dto.MemberVO"
+			alias="member" />
+		<typeAlias type="com.Semicolon.cmnt.dto.BoardVO"
+			alias="board" />
+		<typeAlias type="com.Semicolon.cmnt.dto.ReplyVO"
+			alias="reply" />
+		<typeAlias type="com.Semicolon.cmnt.dto.EngineerVO"
+			alias="engineer" />
+		<typeAlias type="com.Semicolon.cmnt.dto.Recruit_BoardVO"
+			alias="recruit_board" />
+		<typeAlias type="com.Semicolon.cmnt.command.PageMaker"
+			alias="pageMaker" />
+		<typeAlias
+			type="com.Semicolon.cmnt.dto.Recruit_ApplicationVO"
+			alias="recruit_application" />
+
+
+
+		<typeAlias type="com.Semicolon.dto.AttachVO" alias="attach" />
+		<typeAlias type="com.Semicolon.dto.FundingVO"
+			alias="funding" />
+
+		<typeAlias type="com.Semicolon.dto.AttachReportVO"
+			alias="attachreport" />
+		<typeAlias type="com.Semicolon.dto.ReportVO" alias="report" />
+
+		<typeAlias type="com.Semicolon.dto.HeartVO" alias="heart" />
+
+		<typeAlias type="com.Semicolon.dto.MeetingVO"
+			alias="meeting" />
+
+		<typeAlias type="com.Semicolon.dto.AdminReportVO"
+			alias="adminreport" />
+		<typeAlias type="com.Semicolon.command.ReportPageMaker"
+			alias="reportpageMaker" />
+
+		<typeAlias type="com.Semicolon.dto.MenuVO" alias="menu" />
+	</typeAliases>
+</configuration>

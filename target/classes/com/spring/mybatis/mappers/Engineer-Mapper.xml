@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Engineer-Mapper">
+
+	<select id="selectEngineerByEng_ID" parameterType="str" resultType="engineer">
+		select *
+		from engineer
+		where eng_id=#{eng_id}
+	</select>
+	
+	<insert id="insertEngineer" parameterType="engineer">
+        INSERT INTO engineer (eng_id, user_id, or_id, major, introduce)
+        VALUES (engineer_seq.nextval, #{user_id}, #{or_id}, #{major}, #{introduce})
+    </insert>
+	
+	<update id="updateEngineer" parameterType="engineer">
+		update engineer 
+		set or_id=#{or_id}, major=#{major}, introduce=#{introduce}
+		where user_id=#{user_id}
+	</update>
+	
+	
+	<!-- <select id="selectEngineerSeqNext" resultType="str">
+		select engineer_seq.nextval as eng_id from dual
+	</select> -->
+	
+</mapper>
+
+
+
+
+
