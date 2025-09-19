@@ -22,7 +22,7 @@ public class AdminController {
 	private AdminReportService adminreportService;
 	
 	@Autowired
-	private FundingService fundingService;
+	private FundingService fundingService; // 푸쉬 테스트
 	
 	/*
 	@GetMapping("/list")
