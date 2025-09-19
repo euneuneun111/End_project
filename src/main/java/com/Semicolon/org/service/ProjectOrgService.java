@@ -16,4 +16,6 @@ public interface ProjectOrgService {
     
     /** 프로젝트 시퀀스 조회 (PRJ-xxx ID용) */
     int getProjectSeq();
+    
+ 
 }

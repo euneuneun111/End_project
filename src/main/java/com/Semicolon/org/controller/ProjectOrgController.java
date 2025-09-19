@@ -2,7 +2,6 @@ package com.Semicolon.org.controller;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,130 +33,150 @@ import com.Semicolon.org.service.ProjectOrgService;
 @RequestMapping("/org/myproject")
 public class ProjectOrgController {
 
-    private final ProjectOrgService projectOrgService;
-    private final MemberService memberService;
+	private final ProjectOrgService projectOrgService;
+	private final MemberService memberService;
 
-    @Resource(name = "projectSavedFilePath")
-    private String projectUploadPath;
+	@Resource(name = "projectSavedFilePath")
+	private String projectUploadPath;
 
-    public ProjectOrgController(ProjectOrgService projectOrgService, MemberService memberService) {
-        this.projectOrgService = projectOrgService;
-        this.memberService = memberService;
-    }
+	public ProjectOrgController(ProjectOrgService projectOrgService, MemberService memberService) {
+		this.projectOrgService = projectOrgService;
+		this.memberService = memberService;
+	}
 
-    /** 프로젝트 목록 조회 */
-    @GetMapping("/list")
-    public String projectList(Model model) {
-        List<ProjectOrgDTO> projectList = projectOrgService.getProjectList();
-        model.addAttribute("projectList", projectList);
-        return "organization/myproject";
-    }
+	/** 프로젝트 목록 조회 */
+	@GetMapping("/list")
+	public String projectList(Model model) {
+		List<ProjectOrgDTO> projectList = projectOrgService.getProjectList();
 
-    /** 프로젝트 생성 페이지 이동 */
-    @GetMapping("/create")
-    public String createProjectForm() {
-        return "organization/projectcreate";
-    }
+		model.addAttribute("projectList", projectList);
+		return "organization/myproject";
+	}
 
-    /** 프로젝트 생성 처리 */
-    @PostMapping("/create")
-    @ResponseBody
-    public String createProject(@ModelAttribute ProjectCreateCommand command) throws Exception {
-        ProjectOrgDTO project = command.toProjectOrgDTO();
+	/** 프로젝트 생성 페이지 이동 */
+	@GetMapping("/create")
+	public String createProjectForm() {
+		return "organization/projectcreate";
+	}
 
-        // 시퀀스 조회
-        int seq = projectOrgService.getProjectSeq();
-        String projectId = String.format("PRJ-%03d", seq);
-        project.setProjectId(projectId);
+	/** 프로젝트 생성 처리 */
+	@PostMapping("/create")
+	@ResponseBody
+	public String createProject(@ModelAttribute ProjectCreateCommand command) throws Exception {
+		ProjectOrgDTO project = command.toProjectOrgDTO();
 
-        // 파일 저장
-        MultipartFile logoFile = command.getProjectLogo();
-        if (logoFile != null && !logoFile.isEmpty()) {
-            // UUID 포함 파일명 생성
-            String uuid = UUID.randomUUID().toString().replace("-", "");
-            String savedFileName = uuid + "$$" + logoFile.getOriginalFilename();
+		// 시퀀스 조회
+		int seq = projectOrgService.getProjectSeq();
+		String projectId = String.format("PRJ-%03d", seq);
+		project.setProjectId(projectId);
 
-            // 파일 저장
-            File target = new File(projectUploadPath, savedFileName);
-            target.getParentFile().mkdirs(); // 폴더 없으면 생성
-            logoFile.transferTo(target);
+		// 파일 저장
+		MultipartFile logoFile = command.getProjectLogo();
+		if (logoFile != null && !logoFile.isEmpty()) {
+			// UUID 포함 파일명 생성
+			String uuid = UUID.randomUUID().toString().replace("-", "");
+			String savedFileName = uuid + "$$" + logoFile.getOriginalFilename();
 
-            // DB 컬럼에 파일명 저장
-            project.setProjectLogo(savedFileName);
-        }
+			// 파일 저장
+			File target = new File(projectUploadPath, savedFileName);
+			target.getParentFile().mkdirs(); // 폴더 없으면 생성
+			logoFile.transferTo(target);
 
-        projectOrgService.insertProject(project);
+			// DB 컬럼에 파일명 저장
+			project.setProjectLogo(savedFileName);
+		}
 
-        return "<script>alert('프로젝트가 생성되었습니다.'); opener.location.reload(); window.close();</script>";
-    }
+		projectOrgService.insertProject(project);
 
-    /** 프로젝트 상세 */
-    @GetMapping("/{projectId}")
-    public String projectDetail(@PathVariable("projectId") String projectId, Model model) {
-        ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
-        model.addAttribute("project", project);
-        return "/organization/projectdetail";
-    }
+		return "<script>alert('프로젝트가 생성되었습니다.'); opener.location.reload(); window.close();</script>";
+	}
 
-    @GetMapping("/getLogo")
-    @ResponseBody
-    public ResponseEntity<byte[]> getProjectLogo(@RequestParam String projectId) {
-        ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
-        
-        // 프로젝트가 없거나 로고가 없으면 404 반환
-        if (project == null || project.getProjectLogo() == null || project.getProjectLogo().isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+	/** 프로젝트 상세 */
+	@GetMapping("/{projectId}")
+	public String projectDetail(@PathVariable("projectId") String projectId, Model model) {
+		ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
+		model.addAttribute("project", project);
+		return "/organization/projectdetail";
+	}
 
-        File file = new File(projectUploadPath, project.getProjectLogo());
-        if (!file.exists()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+	@GetMapping("/getLogo")
+	@ResponseBody
+	public ResponseEntity<byte[]> getProjectLogo(@RequestParam String projectId) {
+		ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
 
-        try (InputStream in = new FileInputStream(file)) {
-            byte[] bytes = IOUtils.toByteArray(in);
+		// 프로젝트가 없거나 로고가 없으면 404 반환
+		if (project == null || project.getProjectLogo() == null || project.getProjectLogo().isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 
-            // 파일 확장자에 맞춰 Content-Type 설정
-            String fileName = project.getProjectLogo().toLowerCase();
-            org.springframework.http.MediaType mediaType;
+		File file = new File(projectUploadPath, project.getProjectLogo());
+		if (!file.exists()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 
-            if (fileName.endsWith(".png")) {
-                mediaType = org.springframework.http.MediaType.IMAGE_PNG;
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                mediaType = org.springframework.http.MediaType.IMAGE_JPEG;
-            } else if (fileName.endsWith(".gif")) {
-                mediaType = org.springframework.http.MediaType.IMAGE_GIF;
-            } else {
-                mediaType = org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-            }
+		try (InputStream in = new FileInputStream(file)) {
+			byte[] bytes = IOUtils.toByteArray(in);
 
-            return ResponseEntity.ok()
-                    .contentType(mediaType)
-                    .body(bytes);
+			// 파일 확장자에 맞춰 Content-Type 설정
+			String fileName = project.getProjectLogo().toLowerCase();
+			org.springframework.http.MediaType mediaType;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+			if (fileName.endsWith(".png")) {
+				mediaType = org.springframework.http.MediaType.IMAGE_PNG;
+			} else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+				mediaType = org.springframework.http.MediaType.IMAGE_JPEG;
+			} else if (fileName.endsWith(".gif")) {
+				mediaType = org.springframework.http.MediaType.IMAGE_GIF;
+			} else {
+				mediaType = org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+			}
 
-    
-    /** 프로젝트 수정 페이지 */
-    @GetMapping("/modify/{projectId}")
-    public String modifyProjectForm(@PathVariable String projectId, Model model) {
-        ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
-        model.addAttribute("project", project);
-        return "/organization/projectmodify";
-    }
+			return ResponseEntity.ok().contentType(mediaType).body(bytes);
 
-    
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-    /** 멤버 닉네임 검색 (AJAX) */
-    @GetMapping("/search")
-    @ResponseBody
-    public List<String> searchNicknames(@RequestParam String keyword) throws SQLException {
-        return memberService.findNicknamesByKeyword(keyword);
-    }
+	/** 프로젝트 수정 페이지 */
+	@GetMapping("/modify/{projectId}")
+	public String modifyProjectForm(@PathVariable String projectId, Model model) {
+		ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
+		model.addAttribute("project", project);
+		return "/organization/projectmodify";
+	}
 
-    
+	/** 멤버 닉네임 검색 (AJAX) */
+	@GetMapping("/search")
+	@ResponseBody
+	public List<String> searchNicknames(@RequestParam String keyword) throws SQLException {
+		return memberService.findNicknamesByKeyword(keyword);
+	}
+
+	@CrossOrigin(origins = "http://localhost:5173") // React 개발 서버 주소
+	@GetMapping("/api/list")
+	@ResponseBody
+	public List<ProjectOrgDTO> getProjectList() {
+		return projectOrgService.getProjectList();
+	}
+	
+	// ================= React Projectbar용 API =================
+	@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+	@GetMapping("/api/projects")
+	@ResponseBody
+	public List<ProjectOrgDTO> getProjectListForReact() {
+	    return projectOrgService.getProjectList();
+	}
+
+	@GetMapping("/api/detail")
+	@ResponseBody
+	public ResponseEntity<ProjectOrgDTO> getProjectDetailForReact(@RequestParam String projectId) {
+		ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
+		if (project == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return ResponseEntity.ok(project);
+	}
+
 }

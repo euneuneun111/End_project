@@ -15,4 +15,7 @@ public interface ProjectOrgDAO {
     ProjectOrgDTO selectProjectDetail(String projectId);
     
     int getProjectSeq();  // 시퀀스 조회
+    
+
+
 }
