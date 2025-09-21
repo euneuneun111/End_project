@@ -67,15 +67,17 @@ function LinkedMain() {
             <Route path="/calendar/main" element={<CalendarMain />} />
             <Route path="/gant/main" element={<GantMain />} />
             <Route path="/issue/main" element={<IssueMain />} />
+
             <Route path="/meeting/main" element={<MeetingMain />} />
             <Route path="/meeting/detail/:id" element={<MeetingDetail />} />
             <Route path="/meeting/modify/:id" element={<MeetingModify />} />
             <Route path="/meeting/create" element={<MeetingCreate />} />
-            <Route path="/report/main" element={<ReportMain />} />
+
             <Route path="/report/create" element={<ReportCreate />} />
-            <Route path="/report/detail/:id" element={<ReportDetail />} />
+            <Route path="/report/main/:projectId" element={<ReportMain />} />
             <Route path="/report/modify/:id" element={<ReportModify />} />
-            <Route path="/task/main" element={<TaskMain />} />
+
+            <Route path="/task/main/:projectId" element={<TaskMain />} />
             <Route path="/mypage/main" element={<MypageMain />} />
           </Routes>
         </ContentBox>

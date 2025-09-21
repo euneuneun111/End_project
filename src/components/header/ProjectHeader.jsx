@@ -6,7 +6,7 @@ import HeaderItem from './HeaderItem';
 const HeaderWrapper = styled.div`
   width: 100%;
   display: flex;
-  justify-content: flex-start; /* 메뉴 중앙 정렬 */
+  justify-content: flex-start;
   overflow-x: auto;
   padding: 10px 0;
   scrollbar-width: none;
@@ -22,14 +22,14 @@ const SlideContainer = styled.div`
   gap: 20px;
 `;
 
-function ProjectHeader() {
+function ProjectHeader({ projectId }) {
   const menuItems = [
-    { to: '/issue/Main', icon: 'fa-solid fa-circle-exclamation', name: 'ISSUE' },
-    { to: '/gant/Main', icon: 'fa-solid fa-chart-pie', name: 'GANT' },
-    { to: '/calendar/Main', icon: 'fa-solid fa-calendar', name: 'CALENDAR' },
-    { to: '/task/Main', icon: 'fa-solid fa-box', name: 'TASK' },
-    { to: '/report/Main', icon: 'fa-solid fa-pen-to-square', name: 'REPORT' },
-    { to: '/meeting/Main', icon: 'fa-solid fa-file-lines', name: 'Meeting' },
+    { to: `/issue/${projectId}`, icon: 'fa-solid fa-circle-exclamation', name: 'ISSUE' },
+    { to: `/gant/${projectId}`, icon: 'fa-solid fa-chart-pie', name: 'GANT' },
+    { to: `/calendar/${projectId}`, icon: 'fa-solid fa-calendar', name: 'CALENDAR' },
+    { to: `/task/${projectId}`, icon: 'fa-solid fa-box', name: 'TASK' },
+    { to: `/report/${projectId}`, icon: 'fa-solid fa-pen-to-square', name: 'REPORT' },
+    { to: `/meeting/${projectId}`, icon: 'fa-solid fa-file-lines', name: 'Meeting' },
   ];
 
   return (

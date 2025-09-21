@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from "axios";
 
@@ -15,20 +15,17 @@ const Container = styled.div`
 
 const TopBar = styled.div`
   display: flex;
-  flex-direction: row; /* 항상 같은 행 */
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   margin-bottom: 16px;
-  overflow-x: auto; /* 모바일에서 화면보다 길면 스크롤 가능 */
+  overflow-x: auto;
   padding-bottom: 8px;
-
-  &::-webkit-scrollbar {
-    display: none; /* 스크롤바 숨기기 */
-  }
+  &::-webkit-scrollbar { display: none; }
 `;
 
 const DateInput = styled.input`
-  flex: 1 1 120px; /* 최소 120px, 화면에 맞게 늘어남 */
+  flex: 1 1 120px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -36,7 +33,7 @@ const DateInput = styled.input`
 `;
 
 const UserSelect = styled.select`
-  flex: 1 1 120px; 
+  flex: 1 1 120px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -44,7 +41,7 @@ const UserSelect = styled.select`
 `;
 
 const Button = styled.button`
-  flex: 0 0 auto; /* 버튼은 고정 크기 */
+  flex: 0 0 auto;
   background-color: #4287c4;
   color: white;
   border: none;
@@ -53,10 +50,7 @@ const Button = styled.button`
   border-radius: 25px;
   cursor: pointer;
   transition: 0.3s ease;
-
-  &:hover {
-    background-color: #2f5f8a;
-  }
+  &:hover { background-color: #2f5f8a; }
 `;
 
 const TableWrapper = styled.div`
@@ -68,7 +62,7 @@ const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   background-color: white;
-  min-width: 500px; /* 모바일에서 스크롤 가능 */
+  min-width: 500px;
 `;
 
 const Th = styled.th`
@@ -90,16 +84,13 @@ const Td = styled.td`
 `;
 
 const Tr = styled.tr`
-  &:hover {
-    background-color: #f9f9f9;
-  }
+  &:hover { background-color: #f9f9f9; }
   cursor: pointer;
 `;
 
 const Pagination = styled.div`
   text-align: center;
   margin-top: 15px;
-
   span {
     margin: 0 4px;
     cursor: pointer;
@@ -108,63 +99,87 @@ const Pagination = styled.div`
     padding: 6px 10px;
     border-radius: 50%;
     transition: 0.2s ease;
-
-    &:hover {
-      background-color: #e3f2fd;
-    }
-
-    &.active {
-      background-color: #3a6ea5;
-      color: white;
-      font-weight: bold;
-    }
+    &:hover { background-color: #e3f2fd; }
+    &.active { background-color: #3a6ea5; color: white; font-weight: bold; }
   }
 `;
 
 function ReportMain() {
   const navigate = useNavigate();
-  const [reports, setReports] = useState([]); // 서버 데이터 저장
-  const [loading, setLoading] = useState(true); // 로딩 상태
-  const [error, setError] = useState(null); // 에러 상태
+  const { projectId } = useParams();
+
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState("");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
 
   // 서버에서 보고서 데이터 가져오기
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await axios.get("/project/organization/report/list"); 
-        console.log("서버응답:", response.data); //응답데이터
-        setReports(response.data);
+        if (!projectId) return;
+        const response = await axios.get(`/organization/${projectId}/report/api/list`);
+        const data = Array.isArray(response.data) ? response.data : [];
+        setReports(data);
+
+        const uniqueUsers = Array.from(new Set(data.map(r => r.writer)));
+        setUsers(uniqueUsers);
       } catch (err) {
-        console.log("데이터가져오기 실패:", err); //에러 로그
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchReports();
-  }, []);
+  }, [projectId]);
+
+  // 페이지네이션 계산
+  const filteredReports = Array.isArray(reports)
+    ? reports
+        .filter(r => !selectedUser || r.writer === selectedUser)
+        .filter(r => {
+          if (!selectedDate) return true;
+          const reportDate = new Date(r.regDate).toISOString().split("T")[0];
+          return reportDate === selectedDate;
+        })
+    : [];
+
+  const totalPages = Math.ceil(filteredReports.length / pageSize);
+  const paginatedReports = filteredReports.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <Container>
-            <ProjectHeader />
+      <ProjectHeader />
 
-      {/* 상단 바 */}
       <TopBar>
-        <DateInput type="date" />
-        <UserSelect>
-          <option>사용자 선택</option>
-          <option>김철수</option>
-          <option>홍길동</option>
+        <DateInput
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
+        <UserSelect
+          value={selectedUser}
+          onChange={(e) => setSelectedUser(e.target.value)}
+        >
+          <option value="">사용자 선택</option>
+          {users.map(user => (
+            <option key={user} value={user}>{user}</option>
+          ))}
         </UserSelect>
-        <Button onClick={() => navigate("/report/create")}>보고 작성</Button>
+        <Button onClick={() => navigate(`/report/create/${projectId}`)}>
+          보고 작성
+        </Button>
       </TopBar>
 
-            {/* 데이터 상태 */}
-            {loading && <p>불러오는 중...</p>}
-            {error && <p style={{ color: "red" }}>에러 발생: {error}</p>}
+      {loading && <p>불러오는 중...</p>}
+      {error && <p style={{ color: "red" }}>에러 발생: {error}</p>}
 
-      {/* 테이블 */}
       <TableWrapper>
         <Table>
           <thead>
@@ -176,32 +191,31 @@ function ReportMain() {
             </tr>
           </thead>
           <tbody>
-
-            {reports.map((report) => (
+            {paginatedReports.map(report => (
               <Tr
                 key={report.rno}
-                onClick={() => navigate(`/report/detail/${report.rno}`)} // ReportDetail로 이동
-                style={{ cursor: "pointer" }}
+                onClick={() => navigate(`/report/detail/${report.rno}`)}
               >
                 <Td>{new Date(report.regDate).toLocaleDateString()}</Td>
                 <Td>{report.content}</Td>
                 <Td>{report.writer}</Td>
-                <Td>{report.check}</Td>
+                <Td>{report.check.toString()}</Td>
               </Tr>
             ))}
           </tbody>
         </Table>
       </TableWrapper>
 
-      {/* 페이지네이션 */}
       <Pagination>
-        <span>{"<"}</span>
-        <span className="active">1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>5</span>
-        <span>{">"}</span>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <span
+            key={i + 1}
+            className={i + 1 === page ? "active" : ""}
+            onClick={() => setPage(i + 1)}
+          >
+            {i + 1}
+          </span>
+        ))}
       </Pagination>
     </Container>
   );

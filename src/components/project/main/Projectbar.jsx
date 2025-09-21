@@ -98,23 +98,23 @@ function Projectbar() {
       />
 
       <Container>
-        <StyledLink to={projectId ? `/issue/Main?projectId=${projectId}` : '/issue/Main'}>
+        <StyledLink to={projectId ? `/issue/Main/${projectId}` : '/issue/Main'}>
           <NavItem icon="fa-solid fa-circle-exclamation" name="ISSUE" />
         </StyledLink>
-        <StyledLink to={projectId ? `/gant/Main?projectId=${projectId}` : '/gant/Main'}>
+        <StyledLink to={projectId ? `/gant/Main/${projectId}` : '/gant/Main'}>
           <NavItem icon="fa-solid fa-chart-pie" name="GANT" />
         </StyledLink>
-        <StyledLink to={projectId ? `/calendar/Main?projectId=${projectId}` : '/calendar/Main'}>
+        <StyledLink to={projectId ? `/calendar/Main/${projectId}` : '/calendar/Main'}>
           <NavItem icon="fa-solid fa-calendar" name="CALENDAR" />
         </StyledLink>
-        <StyledLink to={projectId ? `/task/Main?projectId=${projectId}` : '/task/Main'}>
+        <StyledLink to={projectId ? `/task/Main/${projectId}` : '/task/Main'}>
           <NavItem icon="fa-solid fa-box" name="TASK" />
         </StyledLink>
-        <StyledLink to={projectId ? `/report/Main?projectId=${projectId}` : '/report/Main'}>
+        <StyledLink to={projectId ? `/report/Main/${projectId}` : '/report/Main'}>
           <NavItem icon="fa-solid fa-pen-to-square" name="REPORT" />
         </StyledLink>
-        <StyledLink to={projectId ? `/meeting/Main?projectId=${projectId}` : '/meeting/Main'}>
-          <NavItem icon="fa-solid fa-file-lines" name="Meeting" />
+        <StyledLink to={projectId ? `/meeting/Main/${projectId}` : '/meeting/Main'}>
+          <NavItem icon="fa-solid fa-file-lines" name="MEETING" />
         </StyledLink>
       </Container>
     </CenterWrapper>

@@ -290,19 +290,19 @@ function TaskDetailModal({ task, onClose }) {
 }
 
 // --- 메인 컴포넌트 ---
-function GanttMain() {
+function GanttMain({ projectId }) { // projectId를 props로 받음
   const [tasks, setTasks] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState(null);
   const [animationClass, setAnimationClass] = useState('');
-  const projectId = "PJ-001";
 
   useEffect(() => {
+    if (!projectId) return; // projectId 없으면 호출 안 함
     const fetchAllTasks = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`/project/main/project/api/${projectId}/tasks/all`, { withCredentials: true });
+        const response = await axios.get(`/organization/${projectId}/report/api/list`, { withCredentials: true });
         setTasks(response.data || []);
       } catch (error) {
         console.error("간트 데이터 로딩 실패:", error);

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from 'axios';
 import Pagination from './Pagination';
+import { useParams } from 'react-router-dom';
 import Select from 'react-select'; // react-select import
 import styled, { keyframes } from 'styled-components';
 
@@ -183,7 +184,7 @@ function NewTaskModal({ onClose, onSave }) {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  
+
   const handleSelectChange = (selectedOption, actionMeta) => {
     setForm({ ...form, [actionMeta.name]: selectedOption.value });
   };
@@ -222,7 +223,7 @@ function NewTaskModal({ onClose, onSave }) {
         </FormGroup>
         <FormGroup>
           <FormLabel>담당자</FormLabel>
-          <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} placeholder="담당자 선택..."/>
+          <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} placeholder="담당자 선택..." />
         </FormGroup>
         <FormGroup>
           <FormLabel>진행도: {form.taskProgress || 0}%</FormLabel>
@@ -240,11 +241,11 @@ function NewTaskModal({ onClose, onSave }) {
 function TaskDetailModal({ task, onClose, onUpdate, onDelete }) {
   const [form, setForm] = useState(task);
   useEffect(() => { setForm(task); }, [task]);
-  
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  
+
   const handleSelectChange = (selectedOption, actionMeta) => {
     setForm({ ...form, [actionMeta.name]: selectedOption.value });
   };
@@ -277,8 +278,8 @@ function TaskDetailModal({ task, onClose, onUpdate, onDelete }) {
           <FormInput type="range" name="taskProgress" min="0" max="100" step="10" value={form.taskProgress || 0} onChange={handleChange} />
         </FormGroup>
         <ModalFooter>
-            <SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton>
-            <DeleteButton onClick={() => onDelete(task.taskId)}>🗑 삭제</DeleteButton>
+          <SaveButton onClick={() => onUpdate(form)}>✔ 수정</SaveButton>
+          <DeleteButton onClick={() => onDelete(task.taskId)}>🗑 삭제</DeleteButton>
         </ModalFooter>
       </ModalWrapper>
     </ModalOverlay>
@@ -496,57 +497,66 @@ const PaginationContainer = styled.div`
 `;
 // --- 메인 ---
 function TaskMain() {
+  const { projectId } = useParams(); // URL에서 projectId 가져오기
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [pageMaker, setPageMaker] = useState(null);
+  const [pageMaker, setPageMaker] = useState({ page: 1 });
   const [keyword, setKeyword] = useState("");
   const [animationClass, setAnimationClass] = useState('');
-  const projectId = "PJ-001";
 
-  const fetchTasks = async (page = 1, searchKeyword = "") => {
+  const fetchTasks = async (page = pageMaker.page, searchKeyword = keyword) => {
+    if (!projectId) return; // projectId 없으면 fetch하지 않음
+
     try {
       const response = await axios.get(`/project/main/project/api/${projectId}/tasks`, {
-        params: { page: page, keyword: searchKeyword },
+        params: { page, keyword: searchKeyword },
         withCredentials: true
       });
+
       if (response.data) {
         setTasks(response.data.taskList || []);
-        setPageMaker(response.data.pageMaker);
+        setPageMaker(response.data.pageMaker || { page });
       }
-    } catch (error) { console.error("일감 목록 로딩 실패:", error); }
+    } catch (error) {
+      console.error("일감 목록 로딩 실패:", error);
+    }
   };
 
   useEffect(() => {
-    fetchTasks(1, "");
-  }, []);
-  
+    fetchTasks(); // projectId가 바뀌면 다시 호출
+  }, [projectId]);
+
   const handlePageChange = (newPage) => {
+    if (!projectId) return; // projectId 없으면 페이지 변경 무시
     const direction = newPage > (pageMaker?.page || 1) ? 'next' : 'prev';
     if (animationClass) return;
+
     if (direction === 'next') {
-        setAnimationClass('slide-out-left');
-        setTimeout(() => { fetchTasks(newPage, keyword); setAnimationClass('slide-in-right'); }, 250);
+      setAnimationClass('slide-out-left');
+      setTimeout(() => { fetchTasks(newPage); setAnimationClass('slide-in-right'); }, 250);
     } else {
-        setAnimationClass('slide-out-right');
-        setTimeout(() => { fetchTasks(newPage, keyword); setAnimationClass('slide-in-left'); }, 250);
+      setAnimationClass('slide-out-right');
+      setTimeout(() => { fetchTasks(newPage); setAnimationClass('slide-in-left'); }, 250);
     }
     setTimeout(() => { setAnimationClass(''); }, 500);
   };
 
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
+      if (!projectId) return;
       fetchTasks(1, keyword);
     }
   };
 
   const handleAddTask = async (newTask) => {
+    if (!projectId) return;
     try {
       await axios.post(`/project/main/project/${projectId}/tasklist`, newTask, { withCredentials: true });
       alert("새로운 일감이 등록되었습니다.");
       setIsModalOpen(false);
       setKeyword("");
-      fetchTasks(1, "");
+      fetchTasks(1, ""); // 추가 후 1페이지, 검색 초기화
     } catch (error) {
       console.error("일감 생성 실패:", error);
       alert("일감 생성에 실패했습니다. 다시 시도해주세요.");
@@ -554,27 +564,33 @@ function TaskMain() {
   };
 
   const handleUpdateTask = async (updatedTask) => {
+    if (!projectId) return;
     try {
       await axios.put(`/project/main/project/${projectId}/tasklist/${updatedTask.taskId}`, updatedTask, { withCredentials: true });
       alert("일감이 수정되었습니다.");
       setSelectedTask(null);
-      fetchTasks(pageMaker ? pageMaker.page : 1); 
-    } catch (error) { 
-      console.error("일감 수정 실패:", error); 
+      fetchTasks(pageMaker.page);
+    } catch (error) {
+      console.error("일감 수정 실패:", error);
       alert("일감 수정에 실패했습니다.");
     }
   };
 
   const handleDeleteTask = async (taskId) => {
+    if (!projectId) return;
     if (window.confirm("정말로 이 일감을 삭제하시겠습니까?")) {
       try {
-        await axios.delete(`/project/main/project/${projectId}/tasklist/${taskId}`);
+        await axios.delete(`/project/main/project/${projectId}/tasklist/${taskId}`, { withCredentials: true });
         alert("일감이 삭제되었습니다.");
         setSelectedTask(null);
-        fetchTasks(1);
-      } catch (error) { console.error("일감 삭제 실패:", error); }
+        fetchTasks(pageMaker.page);
+      } catch (error) {
+        console.error("일감 삭제 실패:", error);
+      }
     }
   };
+
+
 
   return (
     <>
@@ -584,7 +600,7 @@ function TaskMain() {
           <Header>
             <TitleSection>
               <Title>일감</Title>
-              <SearchInput 
+              <SearchInput
                 placeholder="일감 검색"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
