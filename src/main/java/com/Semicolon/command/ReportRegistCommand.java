@@ -11,6 +11,7 @@ import com.Semicolon.dto.ReportVO;
 
 public class ReportRegistCommand {
 	
+	private String projectId;
 	private String title;
 	private String content;
 	private String writer;
@@ -18,6 +19,19 @@ public class ReportRegistCommand {
 	private String regDate;
 	
 	private List<MultipartFile> uploadFile;
+	
+
+	public String getProjectId() {
+		return projectId;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
+
+	public String getReportDate() {
+		return reportDate;
+	}
 
 	public String getTitle() {
 		return title;
@@ -70,6 +84,7 @@ public class ReportRegistCommand {
 	public ReportVO toReportVO() throws ParseException{
 		ReportVO report = new ReportVO();
 
+		report.setProjectId(this.projectId);
 		report.setContent(this.content);
 		report.setTitle(this.title);
 		report.setWriter(this.writer);

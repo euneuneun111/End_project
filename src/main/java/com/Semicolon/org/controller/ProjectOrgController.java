@@ -154,12 +154,7 @@ public class ProjectOrgController {
 		return memberService.findNicknamesByKeyword(keyword);
 	}
 
-	@CrossOrigin(origins = "http://localhost:5173") // React 개발 서버 주소
-	@GetMapping("/api/list")
-	@ResponseBody
-	public List<ProjectOrgDTO> getProjectList() {
-		return projectOrgService.getProjectList();
-	}
+	
 	
 	// ================= React Projectbar용 API =================
 	@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")

@@ -9,15 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import com.Semicolon.command.PageMaker;
 import com.Semicolon.pms.dto.TaskDto;
@@ -27,15 +19,22 @@ import com.Semicolon.pms.service.TaskService;
 @RequestMapping("/main/project")
 public class TaskController {
 
+	
     private final TaskService taskService;
 
     public TaskController(TaskService taskService) {
         this.taskService = taskService;
     }
 
+    /**
+     * 프로젝트 ID가 없을 경우 기본값 사용 가능 (필요시)
+     */
     @GetMapping("/task")
-    public String redirectToTaskList() {
-        return "redirect:/main/project/PJ-001/tasklist";
+    public String redirectToTaskList(@RequestParam(value = "projectId", required = false) String projectId) {
+        if (projectId == null || projectId.isEmpty()) {
+            projectId = "DEFAULT_PROJECT"; // 필요시 기본값 설정
+        }
+        return "redirect:/main/project/" + projectId + "/tasklist";
     }
 
     @GetMapping("/{projectId}/tasklist")
@@ -54,7 +53,7 @@ public class TaskController {
             pageMaker.setTotalCount(taskService.getTotalCountByProjectId(pageMaker));
             List<TaskDto> taskList = taskService.getTaskListByProjectId(pageMaker);
 
-            model.addAttribute("taskList", taskList); // ✅ 여기 있음
+            model.addAttribute("taskList", taskList);
             model.addAttribute("pageMaker", pageMaker);
             model.addAttribute("projectId", projectId);
 
@@ -63,8 +62,7 @@ public class TaskController {
         }
         return "organization/pms/task/tasklist";
     }
-    
-    // 새 일감 등록
+
     @PostMapping("/{projectId}/tasklist")
     @ResponseBody
     public ResponseEntity<Map<String, String>> createTask(@PathVariable String projectId, @RequestBody TaskDto task) {
@@ -81,8 +79,6 @@ public class TaskController {
         }
     }
 
-
-    // 3. 일감 상세 조회
     @GetMapping("/{projectId}/tasklist/{taskId}")
     public String getTaskDetail(@PathVariable String projectId, @PathVariable String taskId, Model model) {
         try {
@@ -91,12 +87,10 @@ public class TaskController {
             model.addAttribute("projectId", projectId);
         } catch (SQLException e) {
             e.printStackTrace();
-            // 에러 처리 로직
         }
-        return "organization/pms/task/taskdetail"; // 상세 페이지 뷰 경로
+        return "organization/pms/task/taskdetail";
     }
 
-    // 4. 일감 수정 (RESTful API 방식)
     @PutMapping("/{projectId}/tasklist/{taskId}")
     @ResponseBody
     public ResponseEntity<String> updateTask(@PathVariable String taskId, @RequestBody TaskDto task) {
@@ -110,7 +104,6 @@ public class TaskController {
         }
     }
 
-    // 5. 일감 삭제 (RESTful API 방식)
     @DeleteMapping("/{projectId}/tasklist/{taskId}")
     @ResponseBody
     public ResponseEntity<String> deleteTask(@PathVariable String taskId) {
@@ -122,6 +115,7 @@ public class TaskController {
             return new ResponseEntity<>("FAIL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     
     @GetMapping("/api/{projectId}/tasks")
     @ResponseBody
@@ -147,7 +141,7 @@ public class TaskController {
             response.put("pageMaker", pageMaker);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
-            
+
         } catch (SQLException e) {
             e.printStackTrace();
             response.put("error", "일감 목록을 불러오는 데 실패했습니다.");
@@ -155,9 +149,6 @@ public class TaskController {
         }
     }
 
-    /**
-     * [API] 특정 일감의 상세 정보를 JSON으로 반환 (React용)
-     */
     @GetMapping("/api/task/{taskId}")
     @ResponseBody
     public ResponseEntity<?> getTaskDetailForReact(@PathVariable String taskId) {
@@ -173,12 +164,11 @@ public class TaskController {
             return new ResponseEntity<>("Error fetching task details", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     @GetMapping("/api/{projectId}/tasks/all")
     @ResponseBody
     public ResponseEntity<List<TaskDto>> getAllTasksByProjectId(@PathVariable String projectId) {
         try {
-            // TaskService에 projectId로 모든 task 목록을 가져오는 메소드가 필요합니다.
             List<TaskDto> taskList = taskService.getAllTasksByProjectId(projectId);
             return new ResponseEntity<>(taskList, HttpStatus.OK);
         } catch (Exception e) {
@@ -186,7 +176,7 @@ public class TaskController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     @GetMapping("/{projectId}/gantt")
     public String showGanttChartPage(@PathVariable("projectId") String projectId, Model model) {
         model.addAttribute("currentProjectId", projectId);

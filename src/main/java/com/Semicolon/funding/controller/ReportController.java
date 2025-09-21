@@ -82,9 +82,12 @@ public class ReportController {
     public String list(@PathVariable("projectId") String projectId,
                        @ModelAttribute ReportPageMaker reportpage, Model model) throws Exception {
         List<ReportVO> reportList = reportService.reportList(projectId, reportpage);
+
         model.addAttribute("reportList", reportList);
         model.addAttribute("pageMaker", reportpage);
         model.addAttribute("projectId", projectId);
+        System.out.println("projectId = " + projectId);
+
         return "organization/report/list";
     }
 
@@ -199,6 +202,7 @@ public class ReportController {
     @ResponseBody
     public List<ReportVO> listApi(@PathVariable("projectId") String projectId,
                                   @ModelAttribute ReportPageMaker reportpage) throws Exception {
+
         return reportService.reportList(projectId, reportpage);
     }
 

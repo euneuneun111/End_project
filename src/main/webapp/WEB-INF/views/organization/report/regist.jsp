@@ -28,6 +28,8 @@ String today = sdf.format(new java.util.Date());
 		<form name="registForm" role="form" enctype="multipart/form-data"
 			method="post" action="regist.do">
 			<div class="form-row">
+			<input type="hidden" name="projectId" value="${projectId}" />
+			
 				<div class="form-group col-md-6">
 					<label>일일 업무 보고</label> <input type="date" class="form-control"
 						name="reportDate" value="<%=today%>" readonly>
