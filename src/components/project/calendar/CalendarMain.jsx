@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import CalendarWrapper from './CalendarWrapper';
 import EventModal from './EventModal';
@@ -21,6 +22,7 @@ const CalendarCard = styled.div`
 `;
 
 function CalendarMain() {
+  const { projectId } = useParams(); // URL에서 projectId 추출
   const calendarRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,9 +31,10 @@ function CalendarMain() {
   const [events, setEvents] = useState([]);
   const [animationClass, setAnimationClass] = useState('');
 
+  // 일정 불러오기
   const fetchEvents = async () => {
     try {
-      const response = await axios.get('/project/main/calendar/all', { withCredentials: true });
+      const response = await axios.get(`/project/main/${projectId}/calendar/api/all`, { withCredentials: true });
       if (Array.isArray(response.data)) {
         setEvents(response.data);
       } else {
@@ -44,32 +47,29 @@ function CalendarMain() {
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (projectId) fetchEvents();
+  }, [projectId]);
 
+  // 월 이동 애니메이션
   const handleMonthChange = (direction) => {
     if (animationClass) return;
 
     if (direction === 'next') {
       setAnimationClass('slide-out-left');
-      
       setTimeout(() => {
         calendarRef.current?.getApi().next();
         setAnimationClass('slide-in-right');
       }, 250);
     }
 
-
     if (direction === 'prev') {
       setAnimationClass('slide-out-right');
-
       setTimeout(() => {
         calendarRef.current?.getApi().prev();
         setAnimationClass('slide-in-left');
       }, 250);
     }
-    
- 
+
     setTimeout(() => {
       setAnimationClass('');
     }, 500);
@@ -79,7 +79,7 @@ function CalendarMain() {
     setSelectedDate(newDate);
     calendarRef.current?.getApi().gotoDate(newDate);
   };
-  
+
   const handleDatesSet = (dateInfo) => {
     setSelectedDate(dateInfo.view.currentStart);
   };
@@ -95,14 +95,12 @@ function CalendarMain() {
   const handleEventClick = (clickInfo) => {
     const eventId = clickInfo.event.id;
     const originalEvent = events.find(event => event.id === eventId);
-    
     if (originalEvent) {
       setModalMode('detail');
       setSelectedEvent(originalEvent);
       setIsModalOpen(true);
     }
   };
-  
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -111,46 +109,43 @@ function CalendarMain() {
 
   const handleModalSubmit = async (eventData) => {
     const calendarDto = {
-        calendarId: eventData.id,
-        calendarTitle: eventData.title,
-        calendarStartDate: eventData.start,
-        calendarEndDate: eventData.end,
-        calendarContent: eventData.calendarContent 
+      calendarId: eventData.id,
+      calendarTitle: eventData.title,
+      calendarStartDate: eventData.start,
+      calendarEndDate: eventData.end,
+      calendarContent: eventData.calendarContent 
     };
 
     try {
-        if (calendarDto.calendarId) {
-            await axios.put('/project/main/calendar/update', calendarDto, { withCredentials: true });
-            alert('일정이 성공적으로 수정되었습니다.');
-        } else {
-            await axios.post('/project/main/calendar/add', calendarDto, { withCredentials: true });
-            alert('일정이 성공적으로 등록되었습니다.');
-        }
-        // ✅ 성공하면 무조건 fetchEvents() 호출
-        fetchEvents();
+      if (calendarDto.calendarId) {
+        await axios.put(`/project/main/${projectId}/calendar/update`, calendarDto, { withCredentials: true });
+        alert('일정이 성공적으로 수정되었습니다.');
+      } else {
+        await axios.post(`/project/main/${projectId}/calendar/add`, calendarDto, { withCredentials: true });
+        alert('일정이 성공적으로 등록되었습니다.');
+      }
+      fetchEvents();
     } catch (error) {
-        console.error("일정 저장에 실패했습니다.", error);
-        alert('일정 저장 중 오류가 발생했습니다.');
+      console.error("일정 저장에 실패했습니다.", error);
+      alert('일정 저장 중 오류가 발생했습니다.');
     }
 
     handleCloseModal();
-};
-  
+  };
+
   const handleDeleteEvent = async (eventId) => {
     try {
-      await axios.delete(`/project/main/calendar/${eventId}`, { withCredentials: true });
-      alert('일정이 성공적으로 삭제되었습니다.'); // ✅ 삭제 완료 알림
+      await axios.delete(`/project/main/${projectId}/calendar/${eventId}`, { withCredentials: true });
+      alert('일정이 성공적으로 삭제되었습니다.');
       fetchEvents();
     } catch (error) {
       console.error("일정 삭제에 실패했습니다.", error);
-      alert('일정 삭제 중 오류가 발생했습니다.'); // 실패 알림
+      alert('일정 삭제 중 오류가 발생했습니다.');
     }
     handleCloseModal();
   };
 
-  const handleSwitchToEditMode = () => {
-    setModalMode('edit');
-  };
+  const handleSwitchToEditMode = () => setModalMode('edit');
 
   const handleEventListSelect = (event) => {
     setModalMode('detail');
