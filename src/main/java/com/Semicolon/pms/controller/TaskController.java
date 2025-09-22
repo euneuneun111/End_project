@@ -9,8 +9,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.Semicolon.cmnt.dto.MemberVO;
+import com.Semicolon.cmnt.service.MemberService;
 import com.Semicolon.command.PageMaker;
 import com.Semicolon.pms.dto.TaskDto;
 import com.Semicolon.pms.service.TaskService;
@@ -21,9 +31,11 @@ public class TaskController {
 
 	
     private final TaskService taskService;
+    private final MemberService memberService;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, MemberService memberService) {
         this.taskService = taskService;
+        this.memberService = memberService;
     }
 
     /**
@@ -182,4 +194,17 @@ public class TaskController {
         model.addAttribute("currentProjectId", projectId);
         return "organization/pms/gantt/ganttchart";
     }
+
+@GetMapping("/api/{projectId}/members")
+@ResponseBody
+public ResponseEntity<List<MemberVO>> getProjectMembers(@PathVariable String projectId) {
+    try {
+        // MemberService에 projectId로 멤버를 조회하는 메소드가 필요합니다.
+        List<MemberVO> memberList = memberService.getMembersByProjectId(projectId);
+        return new ResponseEntity<>(memberList, HttpStatus.OK);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
 }

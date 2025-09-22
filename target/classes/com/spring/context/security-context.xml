@@ -26,6 +26,7 @@
 	</authentication-manager>
 	
 	<http pattern="/resources/**" security="none" />
+	<http pattern="/**/api/**" security="none" />
 	<http use-expressions="true" pattern="/**"  authentication-manager-ref="auth_manager">
 		
 		

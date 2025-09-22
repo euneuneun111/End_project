@@ -26,6 +26,8 @@ public interface MemberDAO {
 	
 	  // 닉네임 검색 추가
     List<String> selectNicknamesByKeyword(String keyword) throws SQLException;
+    String selectProjectManagersString(String projectId) throws SQLException;
+    List<MemberVO> selectMembersByNames(List<String> names) throws SQLException;
 }
 
 
