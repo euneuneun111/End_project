@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
-
 const Container = styled.div`
   width: 95%;
   max-width: 600px;
@@ -17,7 +16,7 @@ const Container = styled.div`
 const Header = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center; /* 가운데 정렬 */
+  justify-content: center;
   position: relative;
   margin-bottom: 24px;
 `;
@@ -57,7 +56,7 @@ const ImageUploadWrapper = styled.div`
 `;
 
 const HiddenFileInput = styled.input`
-  display: none; /* 파일 이름 숨김 */
+  display: none;
 `;
 
 const FileButton = styled.button`
@@ -76,7 +75,7 @@ const FileButton = styled.button`
 `;
 
 const ImagePreviewWrapper = styled.div`
-  width: 40%; /* 부모 전체 너비 사용 */
+  width: 40%;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -84,17 +83,19 @@ const ImagePreviewWrapper = styled.div`
   padding: 10px;
   border: 1px dashed #ccc;
   border-radius: 12px;
-  justify-content: center; /* 가로 중앙 정렬 */
-  align-items: center;     /* 세로 중앙 정렬 */
-  margin: 0 auto;          /* wrapper 자체를 중앙으로 */
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
 `;
+
 const ImagePreview = styled.img`
-  width: 200px;  /* 크기 축소 */
-  height: 150px; /* 크기 축소 */
+  width: 200px;
+  height: 150px;
   border-radius: 12px;
   object-fit: cover;
   border: 1px solid #ccc;
 `;
+
 const Input = styled.input`
   width: 100%;
   padding: 10px 100px 10px 14px; 
@@ -176,9 +177,9 @@ function ProjectCreate() {
   const [nickname, setNickname] = useState("");
   const [members, setMembers] = useState([]);
   const [images, setImages] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]); // 실제 파일 객체
   const fileInputRef = React.useRef(null);
   const navigate = useNavigate();
-
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -193,24 +194,48 @@ function ProjectCreate() {
     const files = Array.from(e.target.files);
     const filePreviews = files.map(file => URL.createObjectURL(file));
     setImages([...images, ...filePreviews]);
+    setImageFiles([...imageFiles, ...files]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("프로젝트 생성:", { ...form, members, images });
-    alert("프로젝트가 생성되었습니다!");
+
+    const formData = new FormData();
+    formData.append("projectName", form.name);
+    formData.append("projectDesc", form.description);
+    formData.append("projectManager", members.join(","));
+
+    imageFiles.forEach((file) => {
+      formData.append("projectLogo", file); // 서버에서 DTO에 맞게 처리
+    });
+
+    try {
+      const response = await fetch("/project/org/myproject/api/create", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        alert("프로젝트가 성공적으로 생성되었습니다!");
+        navigate(-1);
+      } else {
+        alert("프로젝트 생성에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("서버와 통신 중 오류가 발생했습니다.");
+    }
   };
 
   return (
     <Container>
-       <Header>
+      <Header>
         <CloseButton onClick={() => navigate(-1)}>×</CloseButton>
         <Title>프로젝트 생성</Title>
       </Header>
 
       <Form onSubmit={handleSubmit}>
-
-        {/* 이미지 업로드 */}
         <ImageUploadWrapper>
           <ImagePreviewWrapper>
             {images.length === 0 && <span style={{ color: "#ccc" }}>이미지 미리보기</span>}
@@ -232,7 +257,6 @@ function ProjectCreate() {
           />
         </ImageUploadWrapper>
 
-        {/* 프로젝트 이름 */}
         <Input
           type="text"
           name="name"
@@ -242,7 +266,6 @@ function ProjectCreate() {
           required
         />
 
-        {/* 프로젝트 설명 */}
         <TextArea
           name="description"
           placeholder="프로젝트 설명"
@@ -251,7 +274,6 @@ function ProjectCreate() {
           required
         />
 
-        {/* 닉네임 입력 + 추가 버튼 */}
         <InputWrapper>
           <Input
             type="text"
@@ -262,7 +284,6 @@ function ProjectCreate() {
           <AddButton type="button" onClick={handleAddMember}>추가</AddButton>
         </InputWrapper>
 
-        {/* 멤버 리스트 */}
         <MemberList>
           {members.map((m, i) => (
             <MemberItem key={i}>{m}</MemberItem>
