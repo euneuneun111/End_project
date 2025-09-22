@@ -30,11 +30,6 @@ const urgencyOptions = [
   { value: '낮음', label: '낮음' },
 ];
 
-const managerOptions = [ // 담당자 목록은 필요에 따라 동적으로 받아올 수 있습니다.
-  { value: 'mimi', label: 'mimi' },
-  { value: 'cheolsu', label: 'cheolsu' },
-];
-
 const customStyles = {
   control: (provided) => ({
     ...provided,
@@ -112,6 +107,29 @@ const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
+  position: relative;
+`;
+const ErrorMessage = styled.div`
+  background-color: #fffbe6;
+  color: #c2410c;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  // 캘린더 이미지처럼 입력창 아래에 겹치게 표시하고 싶을 경우 아래 주석 해제
+  position: absolute;
+  bottom: -25px; 
+  left: 0;
+  z-index: 1;
+  width: auto;
+  white-space: nowrap;
+ 
 `;
 const FormLabel = styled.label`
   margin-bottom: 6px;
@@ -169,7 +187,7 @@ const DeleteButton = styled.button`
 `;
 
 // --- 모달 컴포넌트 ---
-function NewTaskModal({ onClose, onSave }) {
+function NewTaskModal({ onClose, onSave, managerOptions }) {
   const [form, setForm] = useState({
     taskTitle: "",
     taskDescription: "",
@@ -180,65 +198,96 @@ function NewTaskModal({ onClose, onSave }) {
     taskEndDate: "",
     taskProgress: 0,
   });
-
+  const [errors, setErrors] = useState({});
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSelectChange = (selectedOption, actionMeta) => {
-    setForm({ ...form, [actionMeta.name]: selectedOption.value });
+ const handleSelectChange = (selectedOption, actionMeta) => {
+    const value = selectedOption ? selectedOption.value : "";
+    setForm({ ...form, [actionMeta.name]: value });
   };
 
   const handleSubmit = () => {
-    onSave(form);
+    const newErrors = {};
+    if (!form.taskTitle.trim()) newErrors.taskTitle = "❗ 일감 이름을 입력하세요.";
+    if (!form.taskStartDate) newErrors.taskStartDate = "❗ 시작일을 선택하세요.";
+    if (!form.taskManagerId) newErrors.taskManagerId = "❗ 담당자를 선택하세요.";
+    
+    // 종료일이 시작일보다 빠를 경우 에러 처리
+    if (form.taskStartDate && form.taskEndDate && form.taskEndDate < form.taskStartDate) {
+        newErrors.taskEndDate = "❗ 종료일은 시작일보다 빠를 수 없습니다.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+    } else {
+      setErrors({});
+      onSave(form);
+    }
   };
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
         <ModalHeader><h2>새 일감 생성</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
+        
+        {/* 3. 각 입력 필드 아래에 에러 메시지 조건부 렌더링 */}
         <FormGroup>
           <FormLabel>일감 이름</FormLabel>
           <FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} />
+          {errors.taskTitle && <ErrorMessage>{errors.taskTitle}</ErrorMessage>}
         </FormGroup>
+
         <FormGroup>
           <FormLabel>일감 설명</FormLabel>
           <FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} />
         </FormGroup>
+
         <FormGroup>
           <FormLabel>일감 상태</FormLabel>
           <Select name="taskStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.taskStatus)} />
         </FormGroup>
+
         <FormGroup>
           <FormLabel>시작일</FormLabel>
           <FormInput type="date" name="taskStartDate" value={form.taskStartDate} onChange={handleChange} />
+          {errors.taskStartDate && <ErrorMessage>{errors.taskStartDate}</ErrorMessage>}
         </FormGroup>
+
         <FormGroup>
           <FormLabel>종료일</FormLabel>
           <FormInput type="date" name="taskEndDate" value={form.taskEndDate} onChange={handleChange} />
+          {errors.taskEndDate && <ErrorMessage>{errors.taskEndDate}</ErrorMessage>}
         </FormGroup>
+
         <FormGroup>
           <FormLabel>우선순위</FormLabel>
           <Select name="taskUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.taskUrgency)} />
         </FormGroup>
+
         <FormGroup>
           <FormLabel>담당자</FormLabel>
           <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} placeholder="담당자 선택..." />
+          {errors.taskManagerId && <ErrorMessage>{errors.taskManagerId}</ErrorMessage>}
         </FormGroup>
+
         <FormGroup>
           <FormLabel>진행도: {form.taskProgress || 0}%</FormLabel>
           <FormInput type="range" name="taskProgress" min="0" max="100" step="10" value={form.taskProgress || 0} onChange={handleChange} />
         </FormGroup>
+
         <ModalFooter>
-          <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
-          <DeleteButton onClick={onClose}>× 취소</DeleteButton>
+            {/* 4. onClick 이벤트에 handleSubmit 연결 */}
+            <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
+            <DeleteButton onClick={onClose}>× 취소</DeleteButton>
         </ModalFooter>
       </ModalWrapper>
     </ModalOverlay>
   );
 }
 
-function TaskDetailModal({ task, onClose, onUpdate, onDelete }) {
+function TaskDetailModal({ task, onClose, onUpdate, onDelete, managerOptions }) {
   const [form, setForm] = useState(task);
   useEffect(() => { setForm(task); }, [task]);
 
@@ -256,8 +305,9 @@ function TaskDetailModal({ task, onClose, onUpdate, onDelete }) {
         <ModalHeader><h2>일감 상세보기</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
         <FormGroup><FormLabel>일감 이름</FormLabel><FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} /></FormGroup>
         <FormGroup><FormLabel>일감 설명</FormLabel><FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} /></FormGroup>
-        <FormGroup><FormLabel>담당자</FormLabel>
-          <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} value={managerOptions.find(opt => opt.value === form.taskManagerId)} />
+        <FormGroup>
+            <FormLabel>담당자</FormLabel>
+            <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} value={managerOptions.find(opt => opt.value === form.taskManagerId)} />
         </FormGroup>
         <FormGroup>
           <FormLabel>시작일</FormLabel>
@@ -499,21 +549,46 @@ const PaginationContainer = styled.div`
 function TaskMain() {
   const { projectId } = useParams(); // URL에서 projectId 가져오기
   const [tasks, setTasks] = useState([]);
+  const [members, setMembers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [pageMaker, setPageMaker] = useState({ page: 1 });
   const [keyword, setKeyword] = useState("");
   const [animationClass, setAnimationClass] = useState('');
+  
+  useEffect(() => {
+    if (!projectId) return;
 
-  const fetchTasks = async (page = pageMaker.page, searchKeyword = keyword) => {
-    if (!projectId) return; // projectId 없으면 fetch하지 않음
+    // 일감과 멤버 목록을 함께 불러오는 함수
+    const fetchInitialData = async () => {
+      try {
+        const [tasksResponse, membersResponse] = await Promise.all([
+          axios.get(`/project/main/project/api/${projectId}/tasks`, { params: { page: 1, keyword: "" }, withCredentials: true }),
+          axios.get(`/project/main/project/api/${projectId}/members`, { withCredentials: true })
+        ]);
 
+        if (tasksResponse.data) {
+          setTasks(tasksResponse.data.taskList || []);
+          setPageMaker(tasksResponse.data.pageMaker || { page: 1 });
+        }
+        if (Array.isArray(membersResponse.data)) {
+          setMembers(membersResponse.data);
+        }
+      } catch (error) {
+        console.error("초기 데이터 로딩 실패:", error);
+      }
+    };
+    
+    fetchInitialData();
+  }, [projectId]);
+
+  const fetchTasks = async (page = 1, searchKeyword = "") => {
+    if (!projectId) return;
     try {
       const response = await axios.get(`/project/main/project/api/${projectId}/tasks`, {
         params: { page, keyword: searchKeyword },
         withCredentials: true
       });
-
       if (response.data) {
         setTasks(response.data.taskList || []);
         setPageMaker(response.data.pageMaker || { page });
@@ -522,10 +597,6 @@ function TaskMain() {
       console.error("일감 목록 로딩 실패:", error);
     }
   };
-
-  useEffect(() => {
-    fetchTasks(); // projectId가 바뀌면 다시 호출
-  }, [projectId]);
 
   const handlePageChange = (newPage) => {
     if (!projectId) return; // projectId 없으면 페이지 변경 무시
@@ -590,7 +661,10 @@ function TaskMain() {
     }
   };
 
-
+  const managerOptions = members.map(member => ({
+    value: member.user_id, 
+    label: member.name 
+  }));
 
   return (
     <>
@@ -636,13 +710,14 @@ function TaskMain() {
           <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
         </ContentWrapper>
       </Container>
-      {isModalOpen && <NewTaskModal onClose={() => setIsModalOpen(false)} onSave={handleAddTask} />}
+      {isModalOpen && <NewTaskModal onClose={() => setIsModalOpen(false)} onSave={handleAddTask} managerOptions={managerOptions} />}
       {selectedTask && (
         <TaskDetailModal
           task={selectedTask}
           onClose={() => setSelectedTask(null)}
           onUpdate={handleUpdateTask}
           onDelete={handleDeleteTask}
+          managerOptions={managerOptions}
         />
       )}
     </>

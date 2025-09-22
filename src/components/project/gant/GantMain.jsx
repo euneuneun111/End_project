@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from 'axios';
@@ -290,7 +291,8 @@ function TaskDetailModal({ task, onClose }) {
 }
 
 // --- 메인 컴포넌트 ---
-function GanttMain({ projectId }) { // projectId를 props로 받음
+function GanttMain() { // projectId를 props로 받음
+  const { projectId } = useParams();
   const [tasks, setTasks] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
@@ -298,14 +300,24 @@ function GanttMain({ projectId }) { // projectId를 props로 받음
   const [animationClass, setAnimationClass] = useState('');
 
   useEffect(() => {
-    if (!projectId) return; // projectId 없으면 호출 안 함
+    if (!projectId) return;
     const fetchAllTasks = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get(`/organization/${projectId}/report/api/list`, { withCredentials: true });
-        setTasks(response.data || []);
+        const response = await axios.get(`/project/main/project/api/${projectId}/tasks/all`, { withCredentials: true });
+        
+        // ✅ [수정] 서버 응답이 배열인지 확인하는 방어 코드 추가
+        if (Array.isArray(response.data)) {
+          setTasks(response.data);
+        } else {
+          // 배열이 아닐 경우, 개발자에게 경고를 보여주고 빈 배열로 처리하여 오류를 방지
+          console.warn("API 응답이 배열이 아닙니다:", response.data);
+          setTasks([]);
+        }
+
       } catch (error) {
         console.error("간트 데이터 로딩 실패:", error);
+        setTasks([]); // 에러 발생 시에도 빈 배열로 초기화
       } finally {
         setIsLoading(false);
       }
