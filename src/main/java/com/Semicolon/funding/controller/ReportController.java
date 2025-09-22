@@ -32,6 +32,9 @@ import com.josephoconnell.html.HTMLInputFilter;
 @Controller
 @RequestMapping("/organization/{projectId}/report")
 public class ReportController {
+	
+	
+
 
     @Autowired
     private ReportService reportService;
@@ -81,6 +84,7 @@ public class ReportController {
     @GetMapping("/list")
     public String list(@PathVariable("projectId") String projectId,
                        @ModelAttribute ReportPageMaker reportpage, Model model) throws Exception {
+    	    	
         List<ReportVO> reportList = reportService.reportList(projectId, reportpage);
 
         model.addAttribute("reportList", reportList);

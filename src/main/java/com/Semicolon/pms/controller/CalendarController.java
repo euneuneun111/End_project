@@ -135,4 +135,30 @@ public class CalendarController {
             return ResponseEntity.status(500).body(Collections.singletonMap("message", "일정 삭제 중 오류가 발생했습니다."));
         }
     }
+    
+    
+    @GetMapping("/api/all")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAllCalendarsApi(@PathVariable("projectId") String projectId) {
+        try {
+            List<CalendarDto> calendars = calendarService.getAllCalendars(projectId);
+
+            List<Map<String, Object>> events = new ArrayList<>();
+            for (CalendarDto c : calendars) {
+                Map<String, Object> event = new HashMap<>();
+                event.put("id", c.getCalendarId());
+                event.put("title", c.getCalendarTitle());
+                event.put("start", c.getCalendarStartDate());
+                event.put("end", c.getCalendarEndDate());
+                event.put("calendarContent", c.getCalendarContent());
+                event.put("allDay", true);
+
+                events.add(event);
+            }
+
+            return ResponseEntity.ok(events);
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
+    }
 }

@@ -32,7 +32,7 @@ import com.Semicolon.org.service.ProjectOrgService;
 @Controller
 @RequestMapping("/org/myproject")
 public class ProjectOrgController {
-
+	
 	private final ProjectOrgService projectOrgService;
 	private final MemberService memberService;
 
@@ -174,4 +174,50 @@ public class ProjectOrgController {
 		return ResponseEntity.ok(project);
 	}
 
+	
+	 /** React에서 프로젝트 생성 처리 */
+    @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+    @PostMapping("/api/create")
+    @ResponseBody
+    public ResponseEntity<String> createProject(
+            @RequestParam("projectName") String projectName,
+            @RequestParam("projectDesc") String projectDesc,
+            @RequestParam("projectManager") String projectManager, // 쉼표로 구분된 닉네임
+            @RequestParam(value = "projectLogo", required = false) List<MultipartFile> projectLogoFiles
+    ) {
+        try {
+            // DTO 생성
+            ProjectOrgDTO project = new ProjectOrgDTO();
+            int seq = projectOrgService.getProjectSeq();
+            String projectId = String.format("PRJ-%03d", seq);
+            project.setProjectId(projectId);
+            project.setProjectName(projectName);
+            project.setProjectDesc(projectDesc);
+            project.setProjectManager(projectManager);
+
+            // 이미지 파일 처리
+            if (projectLogoFiles != null) {
+                for (MultipartFile file : projectLogoFiles) {
+                    if (!file.isEmpty()) {
+                        String uuid = UUID.randomUUID().toString().replace("-", "");
+                        String savedFileName = uuid + "$$" + file.getOriginalFilename();
+                        File target = new File(projectUploadPath, savedFileName);
+                        target.getParentFile().mkdirs();
+                        file.transferTo(target);
+
+                        // 첫 번째 파일만 로고로 지정
+                        if (project.getProjectLogo() == null) {
+                            project.setProjectLogo(savedFileName);
+                        }
+                    }
+                }
+            }
+
+            projectOrgService.insertProject(project);
+            return ResponseEntity.ok("프로젝트 생성 성공");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("프로젝트 생성 실패");
+        }
+    }
 }
