@@ -124,7 +124,7 @@ function ReportMain() {
     const fetchReports = async () => {
       try {
         if (!projectId) return;
-        const response = await axios.get(`/organization/${projectId}/report/api/list`);
+        const response = await axios.get(`/project/organization/${projectId}/report/api/list`);
         const data = Array.isArray(response.data) ? response.data : [];
         setReports(data);
 
@@ -194,7 +194,7 @@ function ReportMain() {
             {paginatedReports.map(report => (
               <Tr
                 key={report.rno}
-                onClick={() => navigate(`/report/detail/${report.rno}`)}
+                onClick={() => navigate(`/${projectId}/report/api/detail/${report.rno}`)}
               >
                 <Td>{new Date(report.regDate).toLocaleDateString()}</Td>
                 <Td>{report.content}</Td>

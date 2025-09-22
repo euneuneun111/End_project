@@ -77,7 +77,8 @@ function LinkedMain() {
 
             <Route path="/report/create/:projectId" element={<ReportCreate />} />
             <Route path="/report/main/:projectId" element={<ReportMain />} />
-            <Route path="/report/modify/:id" element={<ReportModify />} />
+            <Route path="/:projectId/report/api/modify/:id" element={<ReportModify />} />
+            <Route path="/:projectId/report/api/detail/:id" element={<ReportDetail />} />
 
             <Route path="/task/main/:projectId" element={<TaskMain />} />
             <Route path="/mypage/main" element={<MypageMain />} />

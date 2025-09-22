@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useParams } from "react-router-dom";
 import axios from "axios";
 
 // ✅ Styled Components
@@ -88,6 +88,8 @@ const Button = styled.button`
 function ReportCreate() {
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
+  const { projectId } = useParams();
+  const [loginUser, setLoginUser] = useState(null);
 
   const [form, setForm] = useState({
     regDate: today,
@@ -97,6 +99,18 @@ function ReportCreate() {
     reportDate: today,
   });
 
+  useEffect(() => {
+    axios.get("/project/commons/check-session", { withCredentials: true })
+      .then(res => {
+        if (res.data.authenticated) {
+          setLoginUser(res.data.user);
+        } else {
+          setLoginUser(null);
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -105,17 +119,19 @@ function ReportCreate() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const submitForm = { ...form, writer: loginUser?.user_id };
+
     try {
       const response = await axios.post(
-        "/project/organization/report/regist", //백엔드 URL
-        form, //JSON 전송
+        `/project/organization/${projectId}/report/api/regist`, //백엔드 URL
+        submitForm, //JSON 전송
         {
           headers: {"Content-Type":"application/json"},
         }
       );
       console.log("서버응답:",response.data);
       alert("보고가 저장되었습니다.");
-      navigate("/report/Main");
+      navigate(`/report/Main/${projectId}`);
       console.log(form)
     } catch (err) {
       console.error("보고 저장 실패:",err);
@@ -138,9 +154,10 @@ function ReportCreate() {
             <Input
               type="text"
               name="writer"
-              value={form.writer}
+              value={loginUser?.user_id || ""}
               onChange={handleChange}
               required
+              readOnly
             />
           </FormGroup>
         </Row>
@@ -166,7 +183,7 @@ function ReportCreate() {
         </FormGroup>
 
         <ButtonGroup>
-          <Button type="button" cancel="true" onClick={() => navigate("/report/Main")}>
+          <Button type="button" cancel="true" onClick={() => navigate(`/report/Main/${projectId}`)}>
             취소
           </Button>
           <Button type="submit">저장</Button>

@@ -86,7 +86,7 @@ const Button = styled.button`
 
 // ✅ Component
 function ReportModify() {
-  const { id } = useParams();
+  const { id, projectId } = useParams();
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
 
@@ -97,7 +97,7 @@ function ReportModify() {
   useEffect(()=> {
     const fetchReport = async () => {
       try {
-        const response = await axios.get("/project/organization/report/detail",{
+        const response = await axios.get(`/project/organization/${projectId}/report/api/detail`,{
           params: {rno:id},
           headers: {Accept : "application/json"},
         });
@@ -127,13 +127,13 @@ function ReportModify() {
     try {
       const { reportDate, ...sendData } = report; // reportDate 제거
       const response = await axios.post(
-        "/project/organization/report/modify",
+        `/project/organization/${projectId}/report/api/modify`,
         sendData,
         { headers: { "Content-Type": "application/json" } }
       );
       if (response.data === "success"){
         alert("보고가 수정되었습니다!");
-        navigate("/report/Main");
+        navigate(`/report/Main/${projectId}`);
       }
     } catch (err) {
       console.log("report 보내기 전:",report);
@@ -186,7 +186,7 @@ function ReportModify() {
         </FormGroup>
 
         <ButtonGroup>
-          <Button type="button" cancel onClick={() => navigate("/report/Main")}>
+          <Button type="button" cancel="true" onClick={() => navigate(`/report/Main/${projectId}`)}>
             취소
           </Button>
           <Button type="submit">수정</Button>

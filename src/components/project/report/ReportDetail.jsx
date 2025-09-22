@@ -70,7 +70,7 @@ const ConfirmButtonWrapper = styled.div`
 `;
 
 function ReportDetail() {
-  const { id } = useParams();
+  const { id, projectId } = useParams();
   const navigate = useNavigate();
 
   const [report, setReport] = useState(null);
@@ -80,11 +80,12 @@ function ReportDetail() {
   useEffect(()=> {
     const fetchReport = async () => {
       try {
-        const response = await axios.get("/project/organization/report/detail",{
+        const response = await axios.get(`/project/organization/${projectId}/report/api/detail`,{
           params: {rno:id},
           headers: {Accept: "application/json"},
         });
         setReport(response.data);
+        console.log(response.data);
       } catch (err){
         console.error("데이터 가져오기 실패:", err);
         setError("데이터를 가져오는 중 오류가 발생했습니다.");
@@ -93,7 +94,7 @@ function ReportDetail() {
       }
     };
     fetchReport();
-  }, [id]);
+  }, [id, projectId]);
 
   if(loading) return <div>로딩 중...</div>;
   if(error) return <div>{error}</div>;
@@ -105,14 +106,14 @@ const handleDelete = async () => {
 
   try {
     const response = await axios.post(
-      "/project/organization/report/remove",
+      `/project/organization/${projectId}/report/api/remove`,
       { rno: report.rno }, // 삭제할 rno 전달
       { headers: { "Content-Type": "application/json" } }
     );
 
     if (response.data === "success") {
       alert("보고서가 삭제되었습니다.");
-      navigate("/report/Main"); // 삭제 후 목록 페이지로 이동
+      navigate(`/report/Main/${projectId}`); // 삭제 후 목록 페이지로 이동
     } else {
       alert("삭제 실패");
     }
@@ -128,8 +129,8 @@ const handleDelete = async () => {
       <ActionBar>
         <Button color="#6c757d" hoverColor="#5a6268" onClick={() => navigate(-1)}>목록</Button>
         <Button color="#f0ad4e" hoverColor="#ec971f" key={report.id}
-                onClick={() => navigate(`/report/modify/${report.rno}`)} >수정</Button>
-        <Button color="#d9534f" hoverColor="#c9302c" delete onClick={handleDelete}>삭제</Button>
+                onClick={() => navigate(`/${projectId}/report/api/modify/${report.rno}`)} >수정</Button>
+        <Button color="#d9534f" hoverColor="#c9302c" delete="true" onClick={handleDelete}>삭제</Button>
       </ActionBar>
 
       <Title>보고서 상세</Title>
