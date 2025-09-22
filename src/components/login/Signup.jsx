@@ -1,10 +1,10 @@
-// src/LoginPage.jsx
+// src/SignupPage.jsx
 import React, { useState } from "react";
 import styled from "styled-components";
-import { login } from "./LoginApi";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-
+// --- 스타일 정의 ---
 const Container = styled.div`
   width: 100%;
   min-height: 100vh;
@@ -86,29 +86,36 @@ const Register = styled.p`
   }
 `;
 
-export default function LoginPage() {
-  const [id, setId] = useState("");
-  const [password, setPassword] = useState("");
+// --- SignupPage 컴포넌트 ---
+export default function SignupPage() {
   const navigate = useNavigate();
+  const [form, setForm] = useState({
+    user_id: "",
+    user_pwd: "",
+    email: "",
+    name: "",
+  });
 
-  const handleLogin = async (e) => {
-    e.preventDefault(); // 페이지 리로드 방지
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-    if (!id || !password) {
-      alert("ID와 Password를 입력해주세요.");
-      return;
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     try {
-      const res = await login(id, password);
-      if (res.success) {
-        alert("로그인 성공!");
-        navigate("/home");
+      const res = await axios.post("/project/member/api/members/signup", form, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (res.status === 201 || res.data.success) {
+        alert("회원가입 완료!");
+        navigate("/login");
       } else {
-        alert("로그인 실패: " + res.message);
+        alert("회원가입 실패: " + (res.data.message || "알 수 없는 오류"));
       }
     } catch (err) {
-      console.error("로그인 중 오류:", err);
+      console.error("회원가입 중 오류:", err);
       alert("서버 오류 발생");
     }
   };
@@ -117,31 +124,55 @@ export default function LoginPage() {
     <Container>
       <Box>
         <Logo>LINKED</Logo>
-        <Title>LOGIN</Title>
+        <Title>SIGN UP</Title>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <Label>ID</Label>
           <Input
             type="text"
+            name="user_id"
             placeholder="Enter your ID"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
+            value={form.user_id}
+            onChange={handleChange}
+            required
           />
 
           <Label>Password</Label>
           <Input
             type="password"
+            name="user_pwd"
             placeholder="Enter your Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={form.user_pwd}
+            onChange={handleChange}
+            required
           />
 
-          <Button type="submit">Login</Button>
+          <Label>Email</Label>
+          <Input
+            type="email"
+            name="email"
+            placeholder="Enter your Email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+
+          <Label>Nickname</Label>
+          <Input
+            type="text"
+            name="name"
+            placeholder="Enter your Nickname"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
+
+          <Button type="submit">Sign Up</Button>
         </form>
 
         <Register>
-          Don’t have an Account?{" "}
-          <span onClick={() => navigate("/signup")}>Register</span>
+          Already have an account?{" "}
+          <span onClick={() => navigate("/login")}>Login</span>
         </Register>
       </Box>
     </Container>

@@ -1,160 +1,129 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
-import { Calendar } from "lucide-react";
+import axios from "axios";
 
+// ================= Styled Components =================
 const Container = styled.div`
   width: 100%;
   max-width: 800px;
-  margin: 20px auto;
   padding: 20px;
-  background-color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  background-color: #fff;
   border-radius: 12px;
-  font-family: 'Poppins', sans-serif;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+`;
 
-  @media (max-width: 480px) {
-    padding: 16px;
-  }
+const Label = styled.label`
+  display: block;
+  font-size: 14px;
+  margin: 12px 0 6px;
+  color: #333;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #f8f9fa;
+`;
+
+const TextArea = styled.textarea`
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  background-color: #f8f9fa;
 `;
 
 const Row = styled.div`
   display: flex;
   gap: 16px;
-  margin-bottom: 16px;
-
-  @media (max-width: 480px) {
-    flex-direction: column;
-  }
+  margin-bottom: 12px;
 `;
 
 const Column = styled.div`
   flex: 1;
-  display: flex;
-  flex-direction: column;
-`;
-
-const Label = styled.label`
-  margin-bottom: 6px;
-  font-size: 14px;
-  color: #333;
-  font-weight: 500;
-
-  @media (max-width: 480px) {
-    font-size: 13px;
-  }
 `;
 
 const DateInputWrapper = styled.div`
   position: relative;
-  width: 100%;
 `;
 
-const DateInput = styled.input`
-  width: 100%;
-  padding: 5px 40px 5px 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  height: 38px;
-  line-height: 38px;
-  box-sizing: border-box;
+const DateInput = styled(Input).attrs({ type: "date" })``;
 
-  &::-webkit-calendar-picker-indicator {
-    opacity: 0;
-    position: absolute;
-    right: 10px;
-    cursor: pointer;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 13px;
-    height: 36px;
-  }
-`;
-
-const CalendarIcon = styled(Calendar)`
+const CalendarIcon = styled.span`
   position: absolute;
-  right: 12px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: #007bff;
   pointer-events: none;
+`;
 
-  @media (max-width: 480px) {
-    width: 16px;
-    height: 16px;
+const DropdownWrapper = styled.div`
+  position: relative;
+`;
+
+const DropdownHeader = styled.div`
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const DropdownList = styled.ul`
+  position: absolute;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  z-index: 10;
+`;
+
+const DropdownItem = styled.li`
+  padding: 10px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
   }
 `;
 
-const Input = styled.input`
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  height: 38px;
-  box-sizing: border-box;
-
-  @media (max-width: 480px) {
-    font-size: 13px;
-    height: 36px;
-  }
-`;
-
-const TextArea = styled.textarea`
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  resize: vertical;
-  min-height: 80px;
-
-  @media (max-width: 480px) {
-    font-size: 13px;
-    min-height: 70px;
-  }
+const Arrow = styled.span`
+  font-size: 12px;
+  transform: ${({ open }) => (open ? "rotate(180deg)" : "rotate(0)")};
 `;
 
 const CheckboxContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 6px;
-  max-height: 120px;
-  overflow-y: auto;
+  gap: 8px;
 `;
 
 const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
-  background-color: #f8f9fa;
-  padding: 6px 10px;
-  border-radius: 8px;
   font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
-  &:hover {
-    background-color: #e2e6ea;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 13px;
-    padding: 5px 8px;
-  }
 `;
 
 const ButtonRow = styled.div`
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 12px;
   margin-top: 20px;
-
-  @media (max-width: 480px) {
-    flex-direction: column-reverse;
-    gap: 10px;
-  }
 `;
 
 const Button = styled.button`
@@ -163,70 +132,24 @@ const Button = styled.button`
   font-size: 14px;
   border: none;
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
-  color: ${({ disabled, primary }) => (primary ? "white" : "#333")};
-  background-color: ${({ disabled, primary }) =>
-    primary
-      ? disabled
-        ? "#a0c4ff"
-        : "#007bff"
-      : "#f0f0f0"};
   transition: 0.2s;
+  min-width: 80px;
+
+  background-color: ${({ primary, disabled }) =>
+    primary ? (disabled ? "#89b5fd" : "#a0c4ff") : "#f0f0f0"};
+  color: ${({ primary }) => (primary ? "#fff" : "#333")};
+
   &:hover {
     opacity: ${({ disabled }) => (disabled ? 1 : 0.9)};
   }
-
-  @media (max-width: 480px) {
-    font-size: 13px;
-    padding: 8px 16px;
-  }
 `;
 
-const DropdownWrapper = styled.div`
-  position: relative;
-  width: 100%;
-`;
-
-const DropdownHeader = styled.div`
-  padding: 5px 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  background-color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const DropdownList = styled.div`
-  position: absolute;
-  top: 110%;
-  left: 0;
-  width: 100%;
-  max-height: 150px;
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: white;
-  z-index: 10;
-`;
-
-const DropdownItem = styled.div`
-  padding: 8px 12px;
-  cursor: pointer;
-  &:hover {
-    background-color: #f0f2f5;
-  }
-`;
-
-const Arrow = styled.span`
-  display: inline-block;
-  margin-left: 8px;
-  transition: transform 0.2s ease;
-  transform: rotate(${({ open }) => (open ? "180deg" : "0deg")});
-`;
-
+// ================= Component =================
 export default function MeetingCreate() {
+  const { projectId } = useParams(); // URL에서 projectId 가져오기
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
   const [formData, setFormData] = useState({
     modifiedDate: "",
     meetingDate: "",
@@ -237,13 +160,34 @@ export default function MeetingCreate() {
     details: "",
   });
 
-  const hostOptions = [
-    "이민희", "김하설", "최지은", "윤서현", "조민호", "강다은"
-  ];
-  const attendeeOptions = [...hostOptions];
+  const [hostOptions, setHostOptions] = useState([]);
+  const [attendeeOptions, setAttendeeOptions] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
+  // ✅ API 인스턴스는 projectId를 알고 난 뒤 생성
+  const api = axios.create({
+    baseURL: `/project/organization/${projectId}/meeting`,
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" },
+  });
+
+  // 유저 목록 불러오기
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await api.get("/users");
+        if (res.data && Array.isArray(res.data)) {
+          setHostOptions(res.data);
+          setAttendeeOptions(res.data);
+        }
+      } catch (err) {
+        console.error("사용자 목록 불러오기 실패:", err);
+      }
+    };
+    fetchUsers();
+  }, [projectId]);
+
+  // 드롭다운 외부 클릭 처리
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -256,15 +200,18 @@ export default function MeetingCreate() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({...formData, [name]: value});
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleAttendeeChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {
-      setFormData({...formData, attendees: [...formData.attendees, value]});
+      setFormData({ ...formData, attendees: [...formData.attendees, value] });
     } else {
-      setFormData({...formData, attendees: formData.attendees.filter(a=>a!==value)});
+      setFormData({
+        ...formData,
+        attendees: formData.attendees.filter((a) => a !== value),
+      });
     }
   };
 
@@ -277,12 +224,31 @@ export default function MeetingCreate() {
     formData.summary &&
     formData.details;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isFormValid) return;
-    alert("등록되었습니다!");
-    console.log("등록완료", formData);
-    navigate("/meeting/Main");
+
+    try {
+      const payload = {
+        meetingDate: formData.meetingDate,
+        author: formData.host,
+        attend: formData.attendees.join(","),
+        title: formData.meetingTitle,
+        overview: formData.summary,
+        content: formData.details,
+        modifiedDate: formData.modifiedDate,
+        projectId: projectId,
+      };
+
+      const res = await api.post(`/api/regist`, payload); // ✅ POST 경로 수정
+      if (res.status === 200 || res.status === 201) {
+        alert("회의가 등록되었습니다.");
+        navigate(`/meeting/main/${projectId}`);
+      }
+    } catch (error) {
+      console.error("회의 등록 실패:", error);
+      alert("회의 등록 중 오류가 발생했습니다.");
+    }
   };
 
   return (
@@ -292,14 +258,22 @@ export default function MeetingCreate() {
           <Column>
             <Label>등록일</Label>
             <DateInputWrapper>
-              <DateInput type="date" name="modifiedDate" value={formData.modifiedDate} onChange={handleChange} />
+              <DateInput
+                name="modifiedDate"
+                value={formData.modifiedDate}
+                onChange={handleChange}
+              />
               <CalendarIcon />
             </DateInputWrapper>
           </Column>
           <Column>
             <Label>회의일자</Label>
             <DateInputWrapper>
-              <DateInput type="date" name="meetingDate" value={formData.meetingDate} onChange={handleChange} />
+              <DateInput
+                name="meetingDate"
+                value={formData.meetingDate}
+                onChange={handleChange}
+              />
               <CalendarIcon />
             </DateInputWrapper>
           </Column>
@@ -308,17 +282,22 @@ export default function MeetingCreate() {
         <Column>
           <Label>주관자</Label>
           <DropdownWrapper ref={dropdownRef}>
-            <DropdownHeader onClick={()=>setDropdownOpen(!dropdownOpen)}>
+            <DropdownHeader onClick={() => setDropdownOpen(!dropdownOpen)}>
               {formData.host || "선택"}
               <Arrow open={dropdownOpen}>▼</Arrow>
             </DropdownHeader>
             {dropdownOpen && (
               <DropdownList>
-                {hostOptions.map(name => (
-                  <DropdownItem key={name} onClick={()=>{
-                    setFormData({...formData, host: name});
-                    setDropdownOpen(false);
-                  }}>{name}</DropdownItem>
+                {hostOptions.map((name) => (
+                  <DropdownItem
+                    key={name}
+                    onClick={() => {
+                      setFormData({ ...formData, host: name });
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    {name}
+                  </DropdownItem>
                 ))}
               </DropdownList>
             )}
@@ -328,9 +307,16 @@ export default function MeetingCreate() {
         <Column>
           <Label>참석자</Label>
           <CheckboxContainer>
-            {attendeeOptions.map(name=>(
+            {attendeeOptions.map((name) => (
               <CheckboxLabel key={name}>
-                <input type="checkbox" name="attendees" value={name} checked={formData.attendees.includes(name)} onChange={handleAttendeeChange} style={{marginRight:"6px"}}/>
+                <input
+                  type="checkbox"
+                  name="attendees"
+                  value={name}
+                  checked={formData.attendees.includes(name)}
+                  onChange={handleAttendeeChange}
+                  style={{ marginRight: "6px" }}
+                />
                 {name}
               </CheckboxLabel>
             ))}
@@ -339,24 +325,42 @@ export default function MeetingCreate() {
 
         <Column>
           <Label>회의명</Label>
-          <Input type="text" name="meetingTitle" value={formData.meetingTitle} onChange={handleChange} />
+          <Input
+            type="text"
+            name="meetingTitle"
+            value={formData.meetingTitle}
+            onChange={handleChange}
+          />
         </Column>
 
         <Column>
           <Label>회의 개요</Label>
-          <TextArea name="summary" value={formData.summary} onChange={handleChange} />
+          <TextArea
+            name="summary"
+            value={formData.summary}
+            onChange={handleChange}
+          />
         </Column>
 
         <Column>
           <Label>회의 내용</Label>
-          <TextArea name="details" value={formData.details} onChange={handleChange} />
+          <TextArea
+            name="details"
+            value={formData.details}
+            onChange={handleChange}
+          />
         </Column>
 
         <ButtonRow>
-          <Button onClick={()=>navigate("/meeting/Main")}>취소</Button>
-          <Button primary type="submit" disabled={!isFormValid}>등록</Button>
+          <Button onClick={() => navigate(`/meeting/main/${projectId}`)}>
+            취소
+          </Button>
+          <Button primary type="submit" disabled={!isFormValid}>
+            등록
+          </Button>
         </ButtonRow>
       </form>
     </Container>
+
   );
 }

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -55,7 +56,6 @@ const Button = styled.button.attrs(({ $variant, ...rest }) => rest)`
   transition: 0.2s;
   min-width: 80px;
 
-  /* 색상 스타일 */
   background-color: ${({ $variant, disabled }) =>
     $variant === "danger"
       ? "#e74c3c" 
@@ -71,50 +71,54 @@ const Button = styled.button.attrs(({ $variant, ...rest }) => rest)`
   }
 `;
 
-
 function MeetingDetail() {
-  const { id } = useParams();
+  const { projectId, id } = useParams(); // ✅ projectId 함께 받기
   const navigate = useNavigate();
+  const [meeting, setMeeting] = useState(null);
 
-  // 예시 데이터 (실제 API로 불러오기)
-  const meeting = {
-    id,
-    date: "2025-09-09",
-    host: "이민희",
-    participants: "이민희, 김하설, 조민호",
-    title: "프로젝트 진행 회의",
-    summary: "프로젝트 일정 및 역할 분담",
-    content: "세부 진행 상황과 각자의 역할에 대해 논의하였습니다."
-  };
+  useEffect(() => {
+    const fetchMeeting = async () => {
+      try {
+        const res = await axios.get(`/project/organization/${projectId}/api/meeting/${id}`, {
+          withCredentials: true,
+        });
+        setMeeting(res.data);
+      } catch (error) {
+        console.error("회의 상세 조회 실패:", error);
+      }
+    };
+    if (projectId && id) fetchMeeting();
+  }, [projectId, id]);
+
+  if (!meeting) return <div>로딩 중...</div>;
 
   return (
     <Container>
       <Label>회의일자</Label>
-      <Input type="date" value={meeting.date} readOnly />
+      <Input type="date" value={meeting.meetingDate?.substring(0,10)} readOnly />
 
       <Label>주관자</Label>
-      <Input type="text" value={meeting.host} readOnly />
+      <Input type="text" value={meeting.author} readOnly />
 
       <Label>참석자</Label>
-      <Input type="text" value={meeting.participants} readOnly />
+      <Input type="text" value={meeting.attend} readOnly />
 
       <Label>회의명</Label>
       <Input type="text" value={meeting.title} readOnly />
 
       <Label>회의 개요</Label>
-      <TextArea value={meeting.summary} readOnly />
+      <TextArea value={meeting.overview} readOnly />
 
       <Label>회의 내용</Label>
       <TextArea value={meeting.content} readOnly />
 
-<ButtonBar>
-  <Button $variant="danger">삭제</Button>        
-  <Button $variant="primary" onClick={() => navigate(`/meeting/modify/${meeting.id}`)}>
-    수정
-  </Button>                                
-  <Button onClick={() => navigate("/meeting/Main")}>취소</Button> 
-</ButtonBar>
-
+      <ButtonBar>
+        <Button $variant="danger">삭제</Button>        
+        <Button $variant="primary" onClick={() => navigate(`/meeting/modify/${projectId}/${meeting.id}`)}>
+          수정
+        </Button>                                
+        <Button onClick={() => navigate(`/meeting/main/${projectId}`)}>취소</Button> 
+      </ButtonBar>
     </Container>
   );
 }

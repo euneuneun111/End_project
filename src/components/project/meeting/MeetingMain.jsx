@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ProjectHeader from "../../header/ProjectHeader";
+import axios from "axios";
 
+/* ================= Styled Components ================= */
 const Container = styled.div`
   width: 100%;
-  padding: 16px;
+  padding: 8px;
   font-family: "Poppins", sans-serif;
   background-color: #fafafa;
   min-height: 100px;
@@ -41,16 +43,11 @@ const TableWrapper = styled.div`
   border-radius: 8px;
 `;
 
-
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* colgroup 적용 */
+  table-layout: fixed;
   background-color: white;
-
-  @media (max-width: 768px) {
-    font-size: 11px;
-  }
 `;
 
 const Th = styled.th`
@@ -60,11 +57,6 @@ const Th = styled.th`
   font-size: 13px;
   background-color: #f5f7fa;
   word-break: break-word;
-
-  @media (max-width: 768px) {
-    padding: 10px 14px;
-    font-size: 11px;
-  }
 `;
 
 const Td = styled.td`
@@ -75,11 +67,6 @@ const Td = styled.td`
   word-break: break-word;
   white-space: normal;
   overflow-wrap: anywhere;
-
-  @media (max-width: 768px) {
-    padding: 10px 8px;
-    font-size: 11px;
-  }
 `;
 
 const TitleTd = styled(Td)`
@@ -88,25 +75,24 @@ const TitleTd = styled(Td)`
   white-space: nowrap;
 `;
 
-
 const StatusTd = styled(Td)`
   font-weight: bold;
   color: ${({ $status }) =>
     $status === "검토 전"
       ? "#888888"
       : $status === "검토 중"
-        ? "#f0ad4e"
-        : "#28a745"};
+      ? "#f0ad4e"
+      : "#28a745"};
 `;
 
-
 const Pagination = styled.div`
-  position: fixed;      /* 화면에 고정 */
-  bottom: 80px;         /* 화면 아래에서 20px 위 */
-  left: 50%;            /* 수평 중앙 */
-  transform: translateX(-50%); /* 정확히 중앙으로 맞추기 */
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   margin-top: 15px;
+
   span {
     margin: 0 4px;
     cursor: pointer;
@@ -152,7 +138,7 @@ const DropdownList = styled.div`
   position: absolute;
   top: 110%;
   left: 0;
-  width: 80%;
+  width: 100%;
   max-height: 100px;
   overflow-y: auto;
   border: 1px solid #ccc;
@@ -176,32 +162,42 @@ const Arrow = styled.span`
   transform: rotate(${({ open }) => (open ? "180deg" : "0deg")});
 `;
 
+/* ================= Constants ================= */
 const PAGE_SIZE = 15;
 
+/* ================= Component ================= */
 function MeetingMain() {
   const navigate = useNavigate();
+  const { projectId } = useParams(); // ← 동적 파라미터로 projectId 받기
 
-  const authors = ["이민희", "김하설", "최지은", "윤서현", "조민호", "강다은"];
-
-  // 샘플 데이터
-  const meetingsData = Array.from({ length: 23 }, (_, i) => ({
-    id: i + 1,
-    date: `2025-09-${(i % 30) + 1}`,
-    title: `회의 ${i + 1} - 길어질 경우 말줄임 처리 됨.`,
-    author: authors[i % authors.length],
-    status: i % 3 === 0 ? "검토 전" : i % 3 === 1 ? "검토 중" : "완료",
-  }));
-
-  // 최근 작성 순 정렬
-  const sortedMeetings = meetingsData.sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
-  );
-
+  const [meetings, setMeetings] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
   const [authorFilter, setAuthorFilter] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  /* 서버에서 데이터 받아오기 */
+  const getMeetingList = async (page = 1, perPageNum = PAGE_SIZE, keyword = "", author = "") => {
+    try {
+      const res = await axios.get(`/project/organization/${projectId}/api/meeting/list`, {
+        withCredentials: true,
+        params: { page, perPageNum, keyword, author },
+      });
+
+      setMeetings(res.data.meetingList || []);
+      setTotalCount(res.data.pageMaker?.totalCount || 0);
+    } catch (error) {
+      console.error("회의 목록 조회 실패:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (projectId) {
+      getMeetingList(currentPage, PAGE_SIZE, search, authorFilter);
+    }
+  }, [currentPage, search, authorFilter, projectId]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -213,13 +209,7 @@ function MeetingMain() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredMeetings = sortedMeetings.filter(
-    (m) => m.title.includes(search) && (authorFilter ? m.author === authorFilter : true));
-
-  const totalPages = Math.ceil(filteredMeetings.length / PAGE_SIZE);
-  const paginatedMeetings = filteredMeetings.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <Container>
@@ -232,26 +222,31 @@ function MeetingMain() {
           </DropdownHeader>
           {dropdownOpen && (
             <DropdownList>
-              {authors.map((author) => (
+              {[...new Set(meetings.map((m) => m.author))].map((author) => (
                 <DropdownItem
                   key={author}
                   onClick={() => {
                     setAuthorFilter(author);
+                    setCurrentPage(1);
                     setDropdownOpen(false);
-                  }}>
+                  }}
+                >
                   {author}
                 </DropdownItem>
               ))}
               <DropdownItem
                 onClick={() => {
                   setAuthorFilter("");
+                  setCurrentPage(1);
                   setDropdownOpen(false);
-                }}>전체
+                }}
+              >
+                전체
               </DropdownItem>
             </DropdownList>
           )}
         </DropdownWrapper>
-        <Button onClick={() => navigate("/meeting/create")}>+ 회의록</Button>
+        <Button onClick={() => navigate(`/meeting/create/${projectId}`)}>+ 회의록</Button>
       </TopBar>
 
       <TableWrapper>
@@ -271,9 +266,12 @@ function MeetingMain() {
             </tr>
           </thead>
           <tbody>
-            {paginatedMeetings.map((meeting) => (
-              <tr key={meeting.id} onClick={() => navigate(`/meeting/detail/${meeting.id}`)}>
-                <Td>{meeting.date}</Td>
+            {meetings.map((meeting) => (
+              <tr
+                key={meeting.id}
+                onClick={() => navigate(`/meeting/detail/${projectId}/${meeting.id}`)}
+              >
+                <Td>{new Date(meeting.meetingDate).toLocaleDateString()}</Td>
                 <TitleTd>{meeting.title}</TitleTd>
                 <Td>{meeting.author}</Td>
                 <StatusTd $status={meeting.status}>{meeting.status}</StatusTd>
@@ -285,21 +283,17 @@ function MeetingMain() {
 
       {/* 페이지네이션 */}
       <Pagination>
-        <span onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}>
-          {"<"}
-        </span>
+        <span onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}>{"<"}</span>
         {Array.from({ length: totalPages }, (_, i) => (
           <span
             key={i}
             className={currentPage === i + 1 ? "active" : ""}
-            onClick={() => setCurrentPage(i + 1)}>
+            onClick={() => setCurrentPage(i + 1)}
+          >
             {i + 1}
           </span>
         ))}
-        <span
-          onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}>
-          {">"}
-        </span>
+        <span onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}>{">"}</span>
       </Pagination>
     </Container>
   );
