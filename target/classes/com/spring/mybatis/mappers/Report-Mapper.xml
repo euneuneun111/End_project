@@ -5,6 +5,17 @@
 
 <mapper namespace="Report-Mapper">
 
+	<resultMap id="reportMap" type="com.Semicolon.dto.ReportVO">
+		<id property="rno" column="RNO" />
+		<result property="projectId" column="PROJECT_ID" />
+		<result property="title" column="TITLE" />
+		<result property="writer" column="WRITER" />
+		<result property="content" column="CONTENT" />
+		<result property="regDate" column="REGDATE" />
+		<result property="reportDate" column="REPORTDATE" />
+		<result property="check" column="PMCHECK" />
+	</resultMap>
+
 	<!-- 프로젝트별 전체 리포트 개수 조회 (페이징용) -->
 	<select id="selectReportCount" resultType="int"
 		parameterType="ReportPageMaker">
@@ -18,7 +29,7 @@
 	</select>
 
 	<!-- 프로젝트별 리포트 리스트 조회 (페이징 적용) -->
-	<select id="selectReportList" resultType="report"
+	<select id="selectReportList" resultMap="reportMap"
 		parameterType="reportPageMaker">
 		SELECT * FROM REPORT
 		WHERE PROJECT_ID = #{projectId}
@@ -27,58 +38,53 @@
 
 	<!-- 시퀀스 조회 -->
 	<select id="selectReportSequenceNextValue" resultType="int">
-		SELECT REPORT_SEQ.NEXTVAL FROM DUAL
+		SELECT
+		REPORT_SEQ.NEXTVAL FROM DUAL
 	</select>
 
 	<!-- 특정 보고서 조회 -->
 	<select id="selectReportByRno" parameterType="int"
-		resultType="report">
-		SELECT
+		resultMap="reportMap">
+		SELECT *
+		FROM REPORT
+		WHERE RNO = #{rno}
+	</select>
+	<!-- 보고서 등록 (프로젝트별) -->
+	<insert id="insertReport" parameterType="report">
+		INSERT INTO REPORT (
 		RNO,
 		PROJECT_ID,
 		TITLE,
 		WRITER,
 		CONTENT,
-		REGDATE,
-		REPORTDATE,
-		PMCHECK
-		FROM REPORT
-		WHERE RNO = #{rno}
-	</select>
-
-	<!-- 보고서 등록 (프로젝트별) -->
-<insert id="insertReport" parameterType="report">
-    INSERT INTO REPORT (
-        RNO,
-        PROJECT_ID,
-        TITLE,
-        WRITER,
-        CONTENT,
-        REPORTDATE
-    ) VALUES (
-        REPORT_SEQ.NEXTVAL,
-        #{projectId},
-        #{title},
-        #{writer},
-        #{content},
-        #{reportDate}
-    )
-</insert>
+		REPORTDATE
+		) VALUES (
+		REPORT_SEQ.NEXTVAL,
+		#{projectId},
+		#{title},
+		#{writer},
+		#{content},
+		#{reportDate}
+		)
+	</insert>
 
 	<!-- 보고서 수정 -->
 	<update id="updateReport" parameterType="report">
 		UPDATE REPORT
 		SET
-		TITLE = #{title},
+		TITLE =
+		#{title},
 		CONTENT = #{content},
 		REPORTDATE = #{reportDate}
-		WHERE RNO = #{rno}
+		WHERE RNO =
+		#{rno}
 	</update>
 
 	<!-- 보고서 삭제 -->
 	<delete id="deleteReport" parameterType="int">
 		DELETE FROM REPORT
-		WHERE RNO = #{rno}
+		WHERE
+		RNO = #{rno}
 	</delete>
 
 </mapper>
