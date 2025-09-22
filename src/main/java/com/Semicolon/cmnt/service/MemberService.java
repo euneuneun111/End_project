@@ -24,4 +24,5 @@ public interface MemberService {
     
     // 닉네임 검색
     List<String> findNicknamesByKeyword(String keyword) throws SQLException;
+    List<MemberVO> getMembersByProjectId(String projectId) throws SQLException;
 }

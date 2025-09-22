@@ -86,5 +86,14 @@ public class MemberDAOImpl implements MemberDAO{
 	    }
 	    return session.selectList("Member-Mapper.selectNicknamesByKeyword", keyword);
 	}
+	@Override
+    public String selectProjectManagersString(String projectId) throws SQLException {
+        return session.selectOne("Member-Mapper.selectProjectManagersString", projectId);
+    }
+    
+    @Override
+    public List<MemberVO> selectMembersByNames(List<String> names) throws SQLException {
+        return session.selectList("Member-Mapper.selectMembersByNames", names);
+    }
 
 }

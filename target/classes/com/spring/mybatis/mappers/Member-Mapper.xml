@@ -66,4 +66,20 @@
 		FROM member
 		WHERE name LIKE #{keyword}
 	</select>
+	<select id="selectProjectManagersString" parameterType="string" resultType="string">
+    SELECT PROJECT_MANAGER
+    FROM   PROJECT
+    WHERE  PROJECT_ID = #{projectId}
+</select>
+
+<select id="selectMembersByNames" parameterType="list" resultType="member">
+    SELECT USER_ID AS "user_id", NAME, EMAIL
+    FROM   MEMBER
+    WHERE  NAME IN
+    <foreach item="name" collection="list" open="(" separator="," close=")">
+        #{name}
+    </foreach>
+</select>
+
 </mapper>
+

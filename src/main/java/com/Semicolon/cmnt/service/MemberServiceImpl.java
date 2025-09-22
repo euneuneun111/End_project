@@ -1,6 +1,8 @@
 package com.Semicolon.cmnt.service;
 
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.Semicolon.cmnt.dao.MemberDAO;
@@ -60,5 +62,22 @@ public class MemberServiceImpl implements MemberService {
 	public List<String> findNicknamesByKeyword(String keyword) throws SQLException {
 		 return memberDAO.selectNicknamesByKeyword("%" + keyword + "%");
 	}
+	@Override
+	public List<MemberVO> getMembersByProjectId(String projectId) throws SQLException {
+	    // 1단계: DB에서 매니저 이름 문자열 가져오기
+	    String managerNamesString = memberDAO.selectProjectManagersString(projectId);
 
+	    // 매니저가 없는 경우 빈 리스트 반환
+	    if (managerNamesString == null || managerNamesString.trim().isEmpty()) {
+	        return Collections.emptyList();
+	    }
+
+	    // 2단계: 문자열을 쉼표로 분리하여 이름 List 만들기
+	    List<String> nameList = Arrays.asList(managerNamesString.split("\\s*,\\s*"));
+
+	    // 3단계: 이름 List로 실제 멤버 정보 조회하기
+	    List<MemberVO> memberList = memberDAO.selectMembersByNames(nameList);
+	    
+	    return memberList;
+	}
 }
