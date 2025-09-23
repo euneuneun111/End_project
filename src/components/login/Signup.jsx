@@ -1,5 +1,5 @@
 // src/SignupPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -21,7 +21,7 @@ const Box = styled.div`
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
 `;
 
 const Logo = styled.h1`
@@ -73,6 +73,13 @@ const Button = styled.button`
   }
 `;
 
+const SmallButton = styled(Button)`
+  width: 120px;
+  margin-top: 0;
+  padding: 8px;
+  font-size: 13px;
+`;
+
 const Register = styled.p`
   font-size: 13px;
   text-align: center;
@@ -86,7 +93,6 @@ const Register = styled.p`
   }
 `;
 
-// --- SignupPage 컴포넌트 ---
 export default function SignupPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -96,18 +102,79 @@ export default function SignupPage() {
     name: "",
   });
 
+  const [idCheck, setIdCheck] = useState(null); // ID 중복 여부
+  const [nameCheck, setNameCheck] = useState(null); // 닉네임 중복 여부
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+
+    if (e.target.name === "user_id") setIdCheck(null);
+    if (e.target.name === "name") setNameCheck(null);
   };
 
+  // --- 실시간 ID 중복 검사 ---
+  useEffect(() => {
+    const checkId = async () => {
+      if (!form.user_id.trim()) return;
+      try {
+        const res = await axios.get(
+          `/project/member/api/members/check-id?user_id=${encodeURIComponent(
+            form.user_id
+          )}`
+        );
+        setIdCheck(res.data.available);
+      } catch (err) {
+        console.error("ID 중복 검사 오류:", err);
+      }
+    };
+
+    const delayDebounce = setTimeout(checkId, 500); // 0.5초 딜레이
+    return () => clearTimeout(delayDebounce);
+  }, [form.user_id]);
+
+  // --- 실시간 닉네임 중복 검사 ---
+  useEffect(() => {
+    const checkName = async () => {
+      if (!form.name.trim()) return;
+      try {
+        const res = await axios.get(
+          `/project/member/api/members/check-name?name=${encodeURIComponent(
+            form.name
+          )}`
+        );
+        setNameCheck(res.data.available);
+      } catch (err) {
+        console.error("닉네임 중복 검사 오류:", err);
+      }
+    };
+
+    const delayDebounce = setTimeout(checkName, 500); // 0.5초 딜레이
+    return () => clearTimeout(delayDebounce);
+  }, [form.name]);
+
+  // --- 회원가입 요청 ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.user_id.trim() || !form.name.trim()) {
+      alert("ID와 닉네임을 입력해주세요.");
+      return;
+    }
+
+    if (idCheck === false) {
+      alert("이미 사용 중인 ID입니다.");
+      return;
+    }
+
+    if (nameCheck === false) {
+      alert("이미 사용 중인 닉네임입니다.");
+      return;
+    }
 
     try {
       const res = await axios.post("/project/member/api/members/signup", form, {
         headers: { "Content-Type": "application/json" },
       });
-
       if (res.status === 201 || res.data.success) {
         alert("회원가입 완료!");
         navigate("/login");
@@ -136,6 +203,8 @@ export default function SignupPage() {
             onChange={handleChange}
             required
           />
+          {idCheck === true && <p style={{ color: "green", fontSize: "12px" }}>사용 가능한 ID입니다.</p>}
+          {idCheck === false && <p style={{ color: "red", fontSize: "12px" }}>이미 사용 중인 ID입니다.</p>}
 
           <Label>Password</Label>
           <Input
@@ -166,6 +235,8 @@ export default function SignupPage() {
             onChange={handleChange}
             required
           />
+          {nameCheck === true && <p style={{ color: "green", fontSize: "12px" }}>사용 가능한 닉네임입니다.</p>}
+          {nameCheck === false && <p style={{ color: "red", fontSize: "12px" }}>이미 사용 중인 닉네임입니다.</p>}
 
           <Button type="submit">Sign Up</Button>
         </form>
