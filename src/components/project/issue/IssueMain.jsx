@@ -222,6 +222,24 @@ const DeleteButton = styled.button`
   }
 `;
 
+const NoResultsContainer = styled.div`
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+  font-family: 'Pretendard', sans-serif;
+`;
+
+const NoResultsText = styled.p`
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+`;
+
+const NoResultsSubText = styled.p`
+  font-size: 14px;
+  margin-top: 8px;
+`;
+
 // --- 새 이슈 모달 ---
 function NewIssueModal({ onClose, onSave, taskList }) {
   const [form, setForm] = useState({
@@ -659,7 +677,8 @@ function IssueMain() {
             <NewIssueButton onClick={() => setIsModalOpen(true)}>+ 새 이슈</NewIssueButton>
           </Header>
           <IssueListWrapper className={animationClass}>
-            {issues.map((issue) => (
+          {issues.length > 0 ? (
+            issues.map((issue) => (
               <IssueItemRow key={issue.issueId} onClick={() => setSelectedIssue(issue)}>
                 <IssueTopLine>
                   <IssueInfo>
@@ -682,9 +701,15 @@ function IssueMain() {
                   </PriorityPill>
                 </IssueBottomLine>
               </IssueItemRow>
-            ))}
-          </IssueListWrapper>
-          <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
+            ))
+          ) : (
+            <NoResultsContainer>
+              <NoResultsText>표시할 이슈가 없습니다.</NoResultsText>
+              <NoResultsSubText>다른 검색어로 다시 시도해 보세요.</NoResultsSubText>
+            </NoResultsContainer>
+          )}
+        </IssueListWrapper>
+        <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
         </ContentWrapper>
       </Container>
       
