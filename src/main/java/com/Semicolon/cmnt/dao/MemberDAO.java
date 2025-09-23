@@ -28,6 +28,9 @@ public interface MemberDAO {
     List<String> selectNicknamesByKeyword(String keyword) throws SQLException;
     String selectProjectManagersString(String projectId) throws SQLException;
     List<MemberVO> selectMembersByNames(List<String> names) throws SQLException;
+    
+    int countByNickname(String nickname) throws SQLException;
+
 }
 
 

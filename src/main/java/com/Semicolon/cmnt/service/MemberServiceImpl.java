@@ -1,6 +1,7 @@
 package com.Semicolon.cmnt.service;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -62,22 +63,33 @@ public class MemberServiceImpl implements MemberService {
 	public List<String> findNicknamesByKeyword(String keyword) throws SQLException {
 		 return memberDAO.selectNicknamesByKeyword("%" + keyword + "%");
 	}
+	
 	@Override
 	public List<MemberVO> getMembersByProjectId(String projectId) throws SQLException {
-	    // 1단계: DB에서 매니저 이름 문자열 가져오기
 	    String managerNamesString = memberDAO.selectProjectManagersString(projectId);
 
-	    // 매니저가 없는 경우 빈 리스트 반환
 	    if (managerNamesString == null || managerNamesString.trim().isEmpty()) {
 	        return Collections.emptyList();
 	    }
 
-	    // 2단계: 문자열을 쉼표로 분리하여 이름 List 만들기
 	    List<String> nameList = Arrays.asList(managerNamesString.split("\\s*,\\s*"));
 
-	    // 3단계: 이름 List로 실제 멤버 정보 조회하기
-	    List<MemberVO> memberList = memberDAO.selectMembersByNames(nameList);
-	    
-	    return memberList;
+	    List<MemberVO> members = new ArrayList<>();
+	    for (String name : nameList) {
+	        MemberVO vo = new MemberVO();
+	        vo.setName(name);  // MemberVO에 name 필드 있다고 가정
+	        members.add(vo);
+	    }
+
+	    return members;
 	}
+
+	@Override
+	public boolean isNicknameAvailable(String nickname) throws SQLException {
+	    // DAO에서 해당 닉네임이 몇 개 있는지 조회
+	    int count = memberDAO.countByNickname(nickname); 
+	    // count가 0이면 사용 가능(true), 0 이상이면 이미 존재(false)
+	    return count == 0;
+	}
+
 }
