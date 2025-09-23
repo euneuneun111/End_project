@@ -125,6 +125,7 @@ function CalendarMain() {
         alert('일정이 성공적으로 등록되었습니다.');
       }
       fetchEvents();
+
     } catch (error) {
       console.error("일정 저장에 실패했습니다.", error);
       alert('일정 저장 중 오류가 발생했습니다.');

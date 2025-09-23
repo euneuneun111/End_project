@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import ProjectHeader from "../../header/ProjectHeader";
 import axios from 'axios';
 import Pagination from './Pagination';
@@ -126,7 +127,28 @@ const FormGroup = styled.div`
   margin-bottom: 15px;
   position: relative;
 `;
+const ErrorMessage = styled.div`
+  background-color: #fffbe6;
+  color: #c2410c;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
+  // 캘린더 이미지처럼 입력창 아래에 겹치게 표시하고 싶을 경우 아래 주석 해제
+  position: absolute;
+  bottom: -25px; 
+  left: 0;
+  z-index: 1;
+  width: auto;
+  white-space: nowrap;
+ 
+`;
 const FormLabel = styled.label`
   margin-bottom: 6px;
   font-size: 14px;
@@ -207,12 +229,13 @@ function NewIssueModal({ onClose, onSave, taskList }) {
     issueStatus: "대기 중", issueUrgency: "보통",
     taskId: ""
   });
-
+  const [errors, setErrors] = useState({});
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   
   // ✅ 4. react-select의 onChange 이벤트를 처리할 별도의 핸들러
   const handleSelectChange = (selectedOption, actionMeta) => {
-    setForm({ ...form, [actionMeta.name]: selectedOption.value });
+    const value = selectedOption ? selectedOption.value : "";
+    setForm({ ...form, [actionMeta.name]: value });
   };
   
   // Task 목록도 react-select 형식으로 변환
@@ -221,35 +244,64 @@ function NewIssueModal({ onClose, onSave, taskList }) {
     label: `${task.taskId} - ${task.taskTitle}`
   }));
 
-  const handleSubmit = () => onSave(form);
+  const handleSubmit = () => {
+    const newErrors = {};
+    if (!form.issueTitle.trim()) newErrors.issueTitle = "❗ 이슈 제목을 입력하세요.";
+    if (!form.issueContent.trim()) newErrors.issueContent = "❗ 이슈 설명을 입력하세요.";
+    if (!form.taskId) newErrors.taskId = "❗ 연결할 일감을 선택하세요.";
+
+    // 에러가 있으면 errors state를 업데이트하고, 없으면 저장 함수 호출
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+    } else {
+      setErrors({});
+      onSave(form);
+    }
+  };
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalWrapper onClick={(e) => e.stopPropagation()}>
         <ModalHeader><h2>새 이슈 생성</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
-        <FormGroup><FormLabel>이슈 제목</FormLabel><FormInput name="issueTitle" value={form.issueTitle} onChange={handleChange} /></FormGroup>
-        <FormGroup><FormLabel>이슈 설명</FormLabel><FormTextarea name="issueContent" value={form.issueContent} onChange={handleChange} /></FormGroup>
         
-        {/* ✅ 5. 기존 FormSelect를 Select 컴포넌트로 교체 */}
+        {/* 3. 각 입력 필드 아래에 에러 메시지 조건부 렌더링 */}
+        <FormGroup>
+          <FormLabel>이슈 제목</FormLabel>
+          <FormInput name="issueTitle" value={form.issueTitle} onChange={handleChange} />
+          {errors.issueTitle && <ErrorMessage>{errors.issueTitle}</ErrorMessage>}
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel>이슈 설명</FormLabel>
+          <FormTextarea name="issueContent" value={form.issueContent} onChange={handleChange} />
+          {errors.issueContent && <ErrorMessage>{errors.issueContent}</ErrorMessage>}
+        </FormGroup>
+        
         <FormGroup>
           <FormLabel>연결할 일감</FormLabel>
           <Select name="taskId" styles={customStyles} options={taskOptions} onChange={handleSelectChange} placeholder="일감 선택..."/>
+          {errors.taskId && <ErrorMessage>{errors.taskId}</ErrorMessage>}
         </FormGroup>
+
         <FormGroup>
           <FormLabel>이슈 상태</FormLabel>
           <Select name="issueStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.issueStatus)}/>
         </FormGroup>
+
         <FormGroup>
           <FormLabel>우선순위</FormLabel>
           <Select name="issueUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.issueUrgency)}/>
         </FormGroup>
         
-        <ModalFooter><SaveButton onClick={handleSubmit}>+ 등록</SaveButton><DeleteButton onClick={onClose}>× 취소</DeleteButton></ModalFooter>
+        <ModalFooter>
+            {/* 4. onClick 이벤트에 handleSubmit 연결 */}
+            <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
+            <DeleteButton onClick={onClose}>× 취소</DeleteButton>
+        </ModalFooter>
       </ModalWrapper>
     </ModalOverlay>
   );
 }
-
 // --- 이슈 상세 모달 ---
 function IssueDetailModal({ issue, onClose, onUpdate, onDelete }) {
   const [form, setForm] = useState(issue);
@@ -453,7 +505,7 @@ function IssueMain() {
   const [pageMaker, setPageMaker] = useState(null);
   const [keyword, setKeyword] = useState("");
   const [animationClass, setAnimationClass] = useState('');
-  const projectId = "PJ-001"; // TODO: 실제 프로젝트 ID를 동적으로 받아오도록 수정
+  const { projectId } = useParams();
 
   const fetchTasks = async () => {
     try {
@@ -485,9 +537,33 @@ function IssueMain() {
   };
 
   useEffect(() => {
-    fetchIssues(1, "");
-    fetchTasks();
-  }, []);
+    // projectId가 URL에 없으면 API를 호출하지 않음
+    if (!projectId) return;
+
+    const fetchInitialData = async () => {
+      try {
+        // 이슈 목록 불러오기
+        const issueResponse = await axios.get(`/project/main/project/api/${projectId}/issues`, {
+          params: { page: 1, keyword: "" },
+          withCredentials: true
+        });
+        if (issueResponse.data) {
+          setIssues(issueResponse.data.issueList || []);
+          setPageMaker(issueResponse.data.pageMaker);
+        }
+
+        // 태스크 목록 불러오기
+        const taskResponse = await axios.get(`/project/main/project/api/${projectId}/tasks`);
+        setTaskList(taskResponse.data.taskList || []);
+
+      } catch (error) {
+        console.error("데이터 로딩 실패:", error);
+      }
+    };
+    
+    fetchInitialData();
+
+  }, [projectId]);
 
   const handlePageChange = (newPage) => {
     // 현재 페이지보다 높은 페이지로 가면 '다음'으로 간주
