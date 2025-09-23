@@ -1,15 +1,19 @@
 package com.Semicolon.cmnt.controller;
 
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -150,4 +154,17 @@ public class MemberController {
              return Map.of("success", false, "message", "회원정보 수정 실패");
          }
      }
+ 	
+ 	@GetMapping("/api/members/check-name")
+ 	public ResponseEntity<Map<String, Boolean>> checkNickname(@RequestParam String name) {
+ 	    Map<String, Boolean> response = new HashMap<>();
+ 	    try {
+ 	        boolean available = service.isNicknameAvailable(name);
+ 	        response.put("available", available);
+ 	    } catch (SQLException e) {
+ 	        e.printStackTrace();
+ 	        response.put("available", false);
+ 	    }
+ 	    return ResponseEntity.ok(response);
+ 	}
 }

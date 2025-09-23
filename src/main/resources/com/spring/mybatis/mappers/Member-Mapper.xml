@@ -21,7 +21,8 @@
 
 	<update id="updateMember" parameterType="member">
 		update member
-		set user_pwd=#{user_pwd}, name=#{name}, email=#{email}
+		set
+		user_pwd=#{user_pwd}, name=#{name}, email=#{email}
 		where
 		user_id=#{user_id}
 	</update>
@@ -40,7 +41,8 @@
 		#{user_id},
 		CASE
 		WHEN #{authorities[0]} = '2' THEN 'ROLE_ENG'
-		WHEN #{authorities[0]} = '1' THEN 'ROLE_SPONSOR'
+		WHEN
+		#{authorities[0]} = '1' THEN 'ROLE_SPONSOR'
 		END
 		)
 	</insert>
@@ -49,7 +51,8 @@
 		delete
 		from authority
 		where
-		user_id = #{user_id} and authority!='ROLE_ADMIN'
+		user_id = #{user_id} and
+		authority!='ROLE_ADMIN'
 	</delete>
 
 	<select id="selectAuthoritiesById" resultType="str">
@@ -66,20 +69,31 @@
 		FROM member
 		WHERE name LIKE #{keyword}
 	</select>
-	<select id="selectProjectManagersString" parameterType="string" resultType="string">
-    SELECT PROJECT_MANAGER
-    FROM   PROJECT
-    WHERE  PROJECT_ID = #{projectId}
-</select>
 
-<select id="selectMembersByNames" parameterType="list" resultType="member">
-    SELECT USER_ID AS "user_id", NAME, EMAIL
-    FROM   MEMBER
-    WHERE  NAME IN
-    <foreach item="name" collection="list" open="(" separator="," close=")">
-        #{name}
-    </foreach>
-</select>
+	<select id="selectProjectManagersString" parameterType="string"
+		resultType="string">
+		SELECT PROJECT_MANAGER
+		FROM PROJECT
+		WHERE PROJECT_ID = #{projectId}
+	</select>
+
+	<select id="selectMembersByNames" parameterType="list"
+		resultType="member">
+		SELECT USER_ID AS "user_id", NAME, EMAIL
+		FROM MEMBER
+		WHERE NAME IN
+		<foreach item="name" collection="list" open="(" separator=","
+			close=")">
+			#{name}
+		</foreach>
+	</select>
+
+	<select id="countByNickname" parameterType="string"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM member
+		WHERE name = #{nickname}
+	</select>
 
 </mapper>
 
