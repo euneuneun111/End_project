@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import MyProject from "./MyProject";
 import { logout } from "../login/LoginApi";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +24,7 @@ const Title = styled.h2`
 `;
 
 const Card = styled.div`
+  flex: 0 0 80%; // 카드 하나 폭
   border: 1px solid #4287c4;
   border-radius: 8px;
   margin-bottom: 16px;
@@ -140,6 +142,7 @@ const LogoutButton = styled.div`
 `
 
 function MypageMain({ user, projects }) {
+  const [projectList, setProjectList] = useState([]);
   const [loginUser, setLoginUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -149,6 +152,21 @@ function MypageMain({ user, projects }) {
     email: user?.email || "",
     user_pwd: "",
   });
+
+  const fetchProjects = async () => {
+    try {
+      const res = await axios.get('/project/org/myproject/api/projects', { withCredentials: true });
+      // ✅ 배열인지 확인, 아니면 빈 배열로 초기화
+      setProjectList(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("프로젝트 불러오기 실패:", err);
+      setProjectList([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
   if (isModalOpen && loginUser) {
@@ -226,24 +244,8 @@ function MypageMain({ user, projects }) {
         </CardContent>
       </Card>
 
-      {/* Project */}
-      <Card>
-        <CardHeader>project</CardHeader>
-        <CardContent>
-          <InfoRow>
-            <i className="fa-solid fa-calendar" name="CALENDAR"></i>
-            <span>일정</span>
-          </InfoRow>
-          <InfoRow>
-            <i className="fa-solid fa-inbox" name="TASK"></i>
-            <span>업무보고</span>
-          </InfoRow>
-          <InfoRow>
-            <i className="fa-solid fa-file-lines" name="MEETING"></i>
-            <span>회의록</span>
-          </InfoRow>
-        </CardContent>
-      </Card>
+      <MyProject projects={projectList}/>
+
       <LogoutButton type="button" onClick={handleLogout}>logout</LogoutButton>
 
       {/* 모달 */}
