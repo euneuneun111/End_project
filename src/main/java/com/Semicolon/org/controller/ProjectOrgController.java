@@ -173,7 +173,6 @@ public class ProjectOrgController {
 	    // 사용자 이름(또는 아이디) 가져오기
 	    String username = loginUser.getName(); // getId()라면 ID 기준으로 변경
 	    
-	    System.out.println(username);
 
 	    // 로그인한 사용자만의 프로젝트 반환
 	    return projectOrgService.getProjectsByUser(username);

@@ -14,11 +14,22 @@
 	<select id="selectMeetingListByProject"
 		parameterType="com.Semicolon.command.PageMaker"
 		resultType="com.Semicolon.dto.MeetingVO">
-		SELECT *
+		SELECT
+		ID,
+		PROJECT_ID AS projectId,
+		MEETINGDATE AS
+		meetingDate,
+		TITLE AS title,
+		AUTHOR AS author,
+		ATTEND AS attend,
+		OVERVIEW
+		AS overview,
+		CONTENT AS content,
+		STATUS AS status
 		FROM MEETING
-		WHERE PROJECT_ID = #{projectId}
-		ORDER BY
-		MEETINGDATE DESC
+		WHERE
+		PROJECT_ID = #{projectId}
+		ORDER BY MEETINGDATE DESC
 	</select>
 
 	<!-- 프로젝트별 회의 수 -->
@@ -33,7 +44,16 @@
 	<!-- 단일 회의 조회 -->
 	<select id="selectMeetingById" parameterType="int"
 		resultType="com.Semicolon.dto.MeetingVO">
-		SELECT *
+		SELECT
+		ID,
+		PROJECT_ID AS projectId,
+		MEETINGDATE AS meetingDate,
+		AUTHOR AS author,
+		ATTEND AS attend,
+		TITLE AS title,
+		OVERVIEW AS overview,
+		CONTENT AS content,
+		STATUS AS status
 		FROM MEETING
 		WHERE ID = #{id}
 	</select>
