@@ -167,4 +167,19 @@ public class MemberController {
  	    }
  	    return ResponseEntity.ok(response);
  	}
+ 	
+ 	 // ID 중복 체크
+    @GetMapping("/api/members/check-id")
+    public ResponseEntity<Map<String, Object>> checkId(@RequestParam("user_id") String userId) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            boolean available = service.isIdAvailable(userId); // ID 사용 가능 여부 확인
+            result.put("available", available);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            result.put("available", false);
+            result.put("error", "서버 오류 발생");
+        }
+        return ResponseEntity.ok(result);
+    }
 }

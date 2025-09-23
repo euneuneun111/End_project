@@ -30,6 +30,8 @@ public interface MemberDAO {
     List<MemberVO> selectMembersByNames(List<String> names) throws SQLException;
     
     int countByNickname(String nickname) throws SQLException;
+    
+    int countById(String userId) throws SQLException;
 
 }
 
