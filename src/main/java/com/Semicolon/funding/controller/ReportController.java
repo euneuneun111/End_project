@@ -212,15 +212,13 @@ public class ReportController {
 
     @PostMapping(value = "/api/regist", produces = "application/json")
     @ResponseBody
-    public String registApi(@PathVariable("projectId") String projectId,
-                            @RequestParam(value = "uploadFile", required = false) List<MultipartFile> uploadFile,
-                            @RequestParam("title") String title) throws Exception {
-        ReportVO report = new ReportVO();
+    public String registApi(
+            @PathVariable("projectId") String projectId,
+            @RequestBody ReportVO report // JSON 바인딩
+    ) throws Exception {
+        
         report.setProjectId(projectId);
-        report.setTitle(HTMLInputFilter.htmlSpecialChars(title));
-
-        List<AttachReportVO> attaches = saveFileToAttaches(uploadFile, fileUploadPath);
-        if (attaches != null) report.setAttaches(attaches);
+        report.setTitle(HTMLInputFilter.htmlSpecialChars(report.getTitle()));
 
         reportService.regist(report);
         return "success";
@@ -232,32 +230,11 @@ public class ReportController {
         return reportService.getRno(rno);
     }
 
-    @PostMapping(value = "/api/modify", produces = "application/json")
+    @PostMapping(value = "/api/modify", consumes = "application/json", produces = "application/json")
     @ResponseBody
     public String modifyApi(@PathVariable("projectId") String projectId,
-                            @RequestParam(value = "uploadFile", required = false) List<MultipartFile> uploadFile,
-                            @RequestParam("rno") int rno,
-                            @RequestParam("title") String title,
-                            @RequestParam(value = "deleteFile", required = false) int[] deleteFile) throws Exception {
-
-        // 삭제 파일 처리
-        if (deleteFile != null) {
-            for (int arno : deleteFile) {
-                AttachReportVO attachreport = attachreportDAO.selectAttachReportByArno(arno);
-                File deleteFileObj = new File(attachreport.getUploadPath(), attachreport.getFileName());
-                if (deleteFileObj.exists()) deleteFileObj.delete();
-                attachreportDAO.deletAttach(arno);
-            }
-        }
-
-        List<AttachReportVO> attachList = saveFileToAttaches(uploadFile, fileUploadPath);
-        if (attachList == null) attachList = new ArrayList<>();
-
-        ReportVO report = reportService.getRno(rno);
-        report.setTitle(HTMLInputFilter.htmlSpecialChars(title));
+                            @RequestBody ReportVO report) throws Exception {
         report.setProjectId(projectId);
-        report.getAttaches().addAll(attachList);
-
         reportService.modify(report);
         return "success";
     }
