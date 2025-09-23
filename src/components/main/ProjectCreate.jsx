@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
@@ -153,11 +153,12 @@ const MemberList = styled.div`
   min-height: 40px;
 `;
 
+// ✅ 본인 닉네임 강조 스타일
 const MemberItem = styled.div`
   padding: 6px 12px;
   border-radius: 12px;
-  background-color: #e6f0ff;
-  color: #0366d6;
+  background-color: ${(props) => (props.isCurrentUser ? "#4287c4" : "#e6f0ff")};
+  color: ${(props) => (props.isCurrentUser ? "#fff" : "#0366d6")};
   font-weight: 500;
 `;
 
@@ -177,11 +178,22 @@ function ProjectCreate() {
   const [nickname, setNickname] = useState("");
   const [members, setMembers] = useState([]);
   const [images, setImages] = useState([]);
-  const [imageFiles, setImageFiles] = useState([]); // 실제 파일 객체
-  const fileInputRef = React.useRef(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  // ✅ 로그인 사용자 닉네임 (없으면 Guest)
+  const currentUser = localStorage.getItem("nickname") || "me";
+
+  // ✅ 최초 렌더링 시 자기 자신 추가
+  useEffect(() => {
+    if (currentUser && !members.includes(currentUser)) {
+      setMembers([currentUser]);
+    }
+  }, [currentUser]);
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleAddMember = () => {
     if (!nickname.trim()) return;
@@ -192,7 +204,7 @@ function ProjectCreate() {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const filePreviews = files.map(file => URL.createObjectURL(file));
+    const filePreviews = files.map((file) => URL.createObjectURL(file));
     setImages([...images, ...filePreviews]);
     setImageFiles([...imageFiles, ...files]);
   };
@@ -203,10 +215,10 @@ function ProjectCreate() {
     const formData = new FormData();
     formData.append("projectName", form.name);
     formData.append("projectDesc", form.description);
-    formData.append("projectManager", members.join(","));
+    formData.append("projectManager", members.join(",")); // ✅ 자기 자신 포함됨
 
     imageFiles.forEach((file) => {
-      formData.append("projectLogo", file); // 서버에서 DTO에 맞게 처리
+      formData.append("projectLogo", file);
     });
 
     try {
@@ -236,15 +248,21 @@ function ProjectCreate() {
       </Header>
 
       <Form onSubmit={handleSubmit}>
+        {/* 이미지 업로드 */}
         <ImageUploadWrapper>
           <ImagePreviewWrapper>
-            {images.length === 0 && <span style={{ color: "#ccc" }}>이미지 미리보기</span>}
+            {images.length === 0 && (
+              <span style={{ color: "#ccc" }}>이미지 미리보기</span>
+            )}
             {images.map((src, i) => (
               <ImagePreview key={i} src={src} alt={`preview-${i}`} />
             ))}
           </ImagePreviewWrapper>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <FileButton type="button" onClick={() => fileInputRef.current.click()}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <FileButton
+              type="button"
+              onClick={() => fileInputRef.current.click()}
+            >
               이미지 선택
             </FileButton>
           </div>
@@ -257,6 +275,7 @@ function ProjectCreate() {
           />
         </ImageUploadWrapper>
 
+        {/* 프로젝트 이름 */}
         <Input
           type="text"
           name="name"
@@ -266,6 +285,7 @@ function ProjectCreate() {
           required
         />
 
+        {/* 프로젝트 설명 */}
         <TextArea
           name="description"
           placeholder="프로젝트 설명"
@@ -274,6 +294,7 @@ function ProjectCreate() {
           required
         />
 
+        {/* 멤버 추가 */}
         <InputWrapper>
           <Input
             type="text"
@@ -281,12 +302,17 @@ function ProjectCreate() {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
           />
-          <AddButton type="button" onClick={handleAddMember}>추가</AddButton>
+          <AddButton type="button" onClick={handleAddMember}>
+            추가
+          </AddButton>
         </InputWrapper>
 
+        {/* 멤버 목록 */}
         <MemberList>
           {members.map((m, i) => (
-            <MemberItem key={i}>{m}</MemberItem>
+            <MemberItem key={i} isCurrentUser={m === currentUser}>
+              {m}
+            </MemberItem>
           ))}
         </MemberList>
 
