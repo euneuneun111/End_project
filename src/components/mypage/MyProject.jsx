@@ -172,7 +172,7 @@ function MyProject({ projects }) {
               <ModalContent onClick={(e) => e.stopPropagation()}>
                 <ModalTitle>{project.projectName} 바로가기</ModalTitle>
                 <ModalLinks>
-                  <Link  to={`/issue/main/${project.projectId}`}><i className="fa-solid fa-circle-exclamation"></i>Issue</Link>
+                  <Link  to={`/issue/main/${project.projectId}`}>Issue</Link>
                   <Link to={`/gant/main/${project.projectId}`}>Gantt</Link>
                   <Link to={`/calendar/main/${project.projectId}`}>Calendar</Link>
                   <Link to={`/task/main/${project.projectId}`}>Task</Link>
