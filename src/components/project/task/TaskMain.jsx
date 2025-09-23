@@ -49,6 +49,24 @@ const customStyles = {
   menu: (provided) => ({ ...provided, zIndex: 1001 })
 };
 
+const NoResultsContainer = styled.div`
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+  font-family: 'Pretendard', sans-serif;
+`;
+
+const NoResultsText = styled.p`
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+`;
+
+const NoResultsSubText = styled.p`
+  font-size: 14px;
+  margin-top: 8px;
+`;
+
 // --- Helper 함수 ---
 const formatDateForInput = (dateValue) => {
   if (!dateValue) return '';
@@ -684,7 +702,8 @@ function TaskMain() {
             <NewTaskButton onClick={() => setIsModalOpen(true)}>+ 새 일감</NewTaskButton>
           </Header>
           <TaskListWrapper className={animationClass}>
-            {tasks.map((task) => (
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
               <TaskItemRow key={task.taskId} onClick={() => setSelectedTask(task)}>
                 <TaskTopLine>
                   <TaskInfo>
@@ -705,8 +724,14 @@ function TaskMain() {
                   <ProgressText>{task.taskProgress || 0}%</ProgressText>
                 </TaskBottomLine>
               </TaskItemRow>
-            ))}
-          </TaskListWrapper>
+            ))
+          ) : (
+            <NoResultsContainer>
+              <NoResultsText>표시할 일감이 없습니다.</NoResultsText>
+              <NoResultsSubText>다른 검색어로 다시 시도해 보세요.</NoResultsSubText>
+            </NoResultsContainer>
+          )}
+        </TaskListWrapper>
           <Pagination pageMaker={pageMaker} onPageChange={handlePageChange} />
         </ContentWrapper>
       </Container>
