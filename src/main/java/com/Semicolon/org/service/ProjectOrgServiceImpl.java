@@ -37,6 +37,9 @@ public class ProjectOrgServiceImpl implements ProjectOrgService {
 		return projectOrgDAO.getProjectSeq();
 	}
 
+	@Override
+	public List<ProjectOrgDTO> getProjectsByUser(String username) {
+	    return projectOrgDAO.selectProjectsByUser(username);
+	}
 
-	
 }

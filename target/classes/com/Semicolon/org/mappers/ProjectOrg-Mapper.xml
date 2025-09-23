@@ -85,5 +85,16 @@
 	</select>
 
 
+	<select id="selectProjectsByUser" parameterType="String"
+		resultMap="ProjectResultMap">
+		SELECT PROJECT_ID,
+		PROJECT_NAME,
+		PROJECT_LOGO,
+		PROJECT_DESC,
+		PROJECT_MANAGER,
+		PROJECT_START_DATE
+		FROM PROJECT
+		WHERE ',' || PROJECT_MANAGER || ',' LIKE '%,' || #{username} || ',%'
+	</select>
 
 </mapper>

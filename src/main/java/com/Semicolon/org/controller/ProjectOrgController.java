@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.Semicolon.cmnt.dto.MemberVO;
 import com.Semicolon.cmnt.service.MemberService;
 import com.Semicolon.org.command.ProjectCreateCommand;
 import com.Semicolon.org.dto.ProjectOrgDTO;
@@ -160,8 +162,21 @@ public class ProjectOrgController {
 	@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 	@GetMapping("/api/projects")
 	@ResponseBody
-	public List<ProjectOrgDTO> getProjectListForReact() {
-	    return projectOrgService.getProjectList();
+	public List<ProjectOrgDTO> getProjectListForReact(HttpSession session) {
+	    // 세션에서 로그인 유저 가져오기
+	    MemberVO loginUser = (MemberVO) session.getAttribute("loginUser");
+
+	    if (loginUser == null) {
+	        throw new RuntimeException("로그인 정보가 없습니다.");
+	    }
+
+	    // 사용자 이름(또는 아이디) 가져오기
+	    String username = loginUser.getName(); // getId()라면 ID 기준으로 변경
+	    
+	    System.out.println(username);
+
+	    // 로그인한 사용자만의 프로젝트 반환
+	    return projectOrgService.getProjectsByUser(username);
 	}
 
 	@GetMapping("/api/detail")

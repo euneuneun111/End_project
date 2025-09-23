@@ -42,6 +42,10 @@ public class ProjectOrgDAOImpl implements ProjectOrgDAO {
         return session.selectOne("ProjectOrg-Mapper.getProjectSeq");
     }
 
+    @Override
+    public List<ProjectOrgDTO> selectProjectsByUser(String username) {
+        return session.selectList("ProjectOrg-Mapper.selectProjectsByUser", username);
+    }
 
 	
 }
