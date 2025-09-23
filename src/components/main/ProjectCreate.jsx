@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";   // ✅ 이거 추가
+
 
 const Container = styled.div`
   width: 95%;
@@ -173,6 +175,8 @@ const SubmitButton = styled.button`
   cursor: pointer;
 `;
 
+// ... (styled-components 그대로)
+
 function ProjectCreate() {
   const [form, setForm] = useState({ name: "", description: "" });
   const [nickname, setNickname] = useState("");
@@ -182,15 +186,30 @@ function ProjectCreate() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // ✅ 로그인 사용자 닉네임 (없으면 Guest)
-  const currentUser = localStorage.getItem("nickname") || "me";
+  const [loginUser, setLoginUser] = useState(null);
 
-  // ✅ 최초 렌더링 시 자기 자신 추가
+  // ✅ 로그인 사용자 체크
   useEffect(() => {
-    if (currentUser && !members.includes(currentUser)) {
-      setMembers([currentUser]);
-    }
-  }, [currentUser]);
+    axios
+      .get("/project/commons/check-session", { withCredentials: true })
+      .then((res) => {
+        if (res.data.authenticated) {
+          setLoginUser(res.data.user);
+          // ✅ 로그인 사용자 닉네임을 기본 멤버로 추가
+          if (!members.includes(res.data.user.name)) {
+            setMembers([res.data.user.name]);
+          }
+        } else {
+          alert("로그인이 필요합니다.");
+          navigate("/login");
+        }
+      })
+      .catch((err) => {
+        console.error("세션 확인 실패:", err);
+        alert("로그인 확인 중 오류가 발생했습니다.");
+        navigate("/login");
+      });
+  }, [navigate]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -215,7 +234,7 @@ function ProjectCreate() {
     const formData = new FormData();
     formData.append("projectName", form.name);
     formData.append("projectDesc", form.description);
-    formData.append("projectManager", members.join(",")); // ✅ 자기 자신 포함됨
+    formData.append("projectManager", members.join(",")); 
 
     imageFiles.forEach((file) => {
       formData.append("projectLogo", file);
@@ -310,7 +329,7 @@ function ProjectCreate() {
         {/* 멤버 목록 */}
         <MemberList>
           {members.map((m, i) => (
-            <MemberItem key={i} isCurrentUser={m === currentUser}>
+            <MemberItem key={i} isCurrentUser={loginUser && m === loginUser.name}>
               {m}
             </MemberItem>
           ))}
