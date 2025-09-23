@@ -72,7 +72,7 @@ function LinkedMain() {
 
             <Route path="/meeting/main/:projectId" element={<MeetingMain />} />
             <Route path="/meeting/detail/:projectId/:id" element={<MeetingDetail />} />
-            <Route path="/meeting/modify/:id" element={<MeetingModify />} />
+            <Route path="/meeting/modify/:projectId/:id" element={<MeetingModify />} />
             <Route path="/meeting/create/:projectId" element={<MeetingCreate />} />
 
             <Route path="/report/create/:projectId" element={<ReportCreate />} />

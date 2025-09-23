@@ -50,11 +50,10 @@ const Table = styled.table`
   background-color: white;
 
   tbody tr {
-    cursor: pointer; /* <-- 행에 포인터 적용 */
+    cursor: pointer;
     transition: background-color 0.2s ease;
-
     &:hover {
-      background-color: #f5f7fa; /* 선택 사항: hover 시 배경색 변경 */
+      background-color: #f5f7fa;
     }
   }
 `;
@@ -149,34 +148,47 @@ const PAGE_SIZE = 15;
 /* ================= Component ================= */
 function MeetingMain() {
   const navigate = useNavigate();
-  const { projectId } = useParams(); // ← 동적 파라미터로 projectId 받기
+  const { projectId } = useParams();
 
   const [meetings, setMeetings] = useState([]);
   const [search, setSearch] = useState("");
   const [authorFilter, setAuthorFilter] = useState("");
+  const [authorOptions, setAuthorOptions] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  /* 서버에서 데이터 받아오기 */
+  // 회의 목록 불러오기
   const getMeetingList = async (keyword = "", author = "") => {
     try {
-      const res = await axios.get(`/project/organization/${projectId}/meeting/api/meeting/list`, {
-        withCredentials: true,
-        params: { keyword, author },
-      });
-
+      const res = await axios.get(
+        `/project/organization/${projectId}/meeting/api/meeting/list`,
+        {
+          withCredentials: true,
+          params: { keyword, author },
+        }
+      );
       setMeetings(res.data.meetingList || []);
     } catch (error) {
       console.error("회의 목록 조회 실패:", error);
     }
   };
 
+  // 회의 데이터 변경 시 고유 주관자(author) 목록 업데이트
+  useEffect(() => {
+    if (meetings.length > 0) {
+      const authors = [...new Set(meetings.map((m) => m.author))];
+      setAuthorOptions(authors);
+    }
+  }, [meetings]);
+
+  // 검색 또는 필터 변경 시 회의 목록 갱신
   useEffect(() => {
     if (projectId) {
       getMeetingList(search, authorFilter);
     }
   }, [search, authorFilter, projectId]);
 
+  // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -193,12 +205,12 @@ function MeetingMain() {
       <TopBar>
         <DropdownWrapper ref={dropdownRef}>
           <DropdownHeader onClick={() => setDropdownOpen(!dropdownOpen)}>
-            {authorFilter || "작성자 선택"}
+            {authorFilter || "주관자 선택"}
             <Arrow open={dropdownOpen}>▼</Arrow>
           </DropdownHeader>
           {dropdownOpen && (
             <DropdownList>
-              {[...new Set(meetings.map((m) => m.author))].map((author) => (
+              {authorOptions.map((author) => (
                 <DropdownItem
                   key={author}
                   onClick={() => {
@@ -235,7 +247,7 @@ function MeetingMain() {
             <tr>
               <Th>작성 날짜</Th>
               <Th>회의 제목</Th>
-              <Th>작성자</Th>
+              <Th>주관자</Th>
               <Th>상태</Th>
             </tr>
           </thead>

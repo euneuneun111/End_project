@@ -58,10 +58,10 @@ const Button = styled.button.attrs(({ $variant, ...rest }) => rest)`
 
   background-color: ${({ $variant, disabled }) =>
     $variant === "danger"
-      ? "#e74c3c" 
+      ? "#e74c3c"
       : $variant === "primary"
-      ? disabled ? "#89b5fd" : "#a0c4ff" 
-      : "#f0f0f0"}; 
+        ? disabled ? "#89b5fd" : "#a0c4ff"
+        : "#f0f0f0"}; 
 
   color: ${({ $variant }) =>
     $variant === "danger" || $variant === "primary" ? "#fff" : "#333"}; 
@@ -95,7 +95,15 @@ function MeetingDetail() {
   return (
     <Container>
       <Label>회의일자</Label>
-      <Input type="date" value={meeting.meetingDate?.substring(0,10)} readOnly />
+      <Input
+        type="date"
+        value={
+          meeting.meetingDate
+            ? new Date(meeting.meetingDate).toISOString().substring(0, 10)
+            : ""
+        }
+        readOnly
+      />
 
       <Label>주관자</Label>
       <Input type="text" value={meeting.author} readOnly />
@@ -113,11 +121,11 @@ function MeetingDetail() {
       <TextArea value={meeting.content} readOnly />
 
       <ButtonBar>
-        <Button $variant="danger">삭제</Button>        
+        <Button $variant="danger">삭제</Button>
         <Button $variant="primary" onClick={() => navigate(`/meeting/modify/${projectId}/${meeting.id}`)}>
           수정
-        </Button>                                
-        <Button onClick={() => navigate(`/meeting/main/${projectId}`)}>취소</Button> 
+        </Button>
+        <Button onClick={() => navigate(`/meeting/main/${projectId}`)}>취소</Button>
       </ButtonBar>
     </Container>
   );
