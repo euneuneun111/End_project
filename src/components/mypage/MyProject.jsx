@@ -36,14 +36,14 @@ const ProjectListWrapper = styled.div`
 `;
 
 const ProjectCard = styled.div`
-  border: 1px solid #4287c4;
+  border: 1px solid #75b7f0;
   border-radius: 8px;
   margin-bottom: 16px;
   overflow: hidden;
 `;
 
 const CardHeader = styled.div`
-  background-color: #6a4caf;  
+  background-color: #75b7f0;  
   color: white;
   display: flex;
   justify-content: space-between;
