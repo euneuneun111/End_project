@@ -76,9 +76,9 @@ function Projectbar() {
   // ✅ 안전하게 map 처리
   const projectOptions = Array.isArray(projects)
     ? projects.map(proj => ({
-        value: proj.projectId,
-        label: proj.projectName
-      }))
+      value: proj.projectId,
+      label: proj.projectName
+    }))
     : [];
 
   const handleProjectChange = (selected) => {
@@ -98,25 +98,49 @@ function Projectbar() {
       />
 
       <Container>
-        <StyledLink to={projectId ? `/issue/Main/${projectId}` : '/issue/Main'}>
+        <StyledLink
+          to={projectId ? `/issue/Main/${projectId}` : '#'}
+          onClick={(e) => { if (!projectId) e.preventDefault(); }}
+        >
           <NavItem icon="fa-solid fa-circle-exclamation" name="ISSUE" />
         </StyledLink>
-        <StyledLink to={projectId ? `/gant/Main/${projectId}` : '/gant/Main'}>
+
+        <StyledLink
+          to={projectId ? `/gant/Main/${projectId}` : '#'}
+          onClick={(e) => { if (!projectId) e.preventDefault(); }}
+        >
           <NavItem icon="fa-solid fa-chart-pie" name="GANT" />
         </StyledLink>
-        <StyledLink to={projectId ? `/calendar/Main/${projectId}` : '/calendar/Main'}>
+
+        <StyledLink
+          to={projectId ? `/calendar/Main/${projectId}` : '#'}
+          onClick={(e) => { if (!projectId) e.preventDefault(); }}
+        >
           <NavItem icon="fa-solid fa-calendar" name="CALENDAR" />
         </StyledLink>
-        <StyledLink to={projectId ? `/task/Main/${projectId}` : '/task/Main'}>
+
+        <StyledLink
+          to={projectId ? `/task/Main/${projectId}` : '#'}
+          onClick={(e) => { if (!projectId) e.preventDefault(); }}
+        >
           <NavItem icon="fa-solid fa-box" name="TASK" />
         </StyledLink>
-        <StyledLink to={projectId ? `/report/Main/${projectId}` : '/report/Main'}>
+
+        <StyledLink
+          to={projectId ? `/report/Main/${projectId}` : '#'}
+          onClick={(e) => { if (!projectId) e.preventDefault(); }}
+        >
           <NavItem icon="fa-solid fa-pen-to-square" name="REPORT" />
         </StyledLink>
-        <StyledLink to={projectId ? `/meeting/Main/${projectId}` : '/meeting/Main'}>
+
+        <StyledLink
+          to={projectId ? `/meeting/Main/${projectId}` : '#'}
+          onClick={(e) => { if (!projectId) e.preventDefault(); }}
+        >
           <NavItem icon="fa-solid fa-file-lines" name="MEETING" />
         </StyledLink>
       </Container>
+
     </CenterWrapper>
   );
 }

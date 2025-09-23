@@ -48,6 +48,15 @@ const Table = styled.table`
   border-collapse: collapse;
   table-layout: fixed;
   background-color: white;
+
+  tbody tr {
+    cursor: pointer; /* <-- 행에 포인터 적용 */
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: #f5f7fa; /* 선택 사항: hover 시 배경색 변경 */
+    }
+  }
 `;
 
 const Th = styled.th`
@@ -83,34 +92,6 @@ const StatusTd = styled(Td)`
       : $status === "검토 중"
       ? "#f0ad4e"
       : "#28a745"};
-`;
-
-const Pagination = styled.div`
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  margin-top: 15px;
-
-  span {
-    margin: 0 4px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #3a6ea5;
-    padding: 6px 10px;
-    border-radius: 50%;
-    transition: 0.2s ease;
-
-    &:hover {
-      background-color: #e3f2fd;
-    }
-    &.active {
-      background-color: #89b5fd;
-      color: white;
-      font-weight: bold;
-    }
-  }
 `;
 
 const DropdownWrapper = styled.div`
@@ -171,23 +152,20 @@ function MeetingMain() {
   const { projectId } = useParams(); // ← 동적 파라미터로 projectId 받기
 
   const [meetings, setMeetings] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
   const [authorFilter, setAuthorFilter] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   /* 서버에서 데이터 받아오기 */
-  const getMeetingList = async (page = 1, perPageNum = PAGE_SIZE, keyword = "", author = "") => {
+  const getMeetingList = async (keyword = "", author = "") => {
     try {
-      const res = await axios.get(`/project/organization/${projectId}/api/meeting/list`, {
+      const res = await axios.get(`/project/organization/${projectId}/meeting/api/meeting/list`, {
         withCredentials: true,
-        params: { page, perPageNum, keyword, author },
+        params: { keyword, author },
       });
 
       setMeetings(res.data.meetingList || []);
-      setTotalCount(res.data.pageMaker?.totalCount || 0);
     } catch (error) {
       console.error("회의 목록 조회 실패:", error);
     }
@@ -195,9 +173,9 @@ function MeetingMain() {
 
   useEffect(() => {
     if (projectId) {
-      getMeetingList(currentPage, PAGE_SIZE, search, authorFilter);
+      getMeetingList(search, authorFilter);
     }
-  }, [currentPage, search, authorFilter, projectId]);
+  }, [search, authorFilter, projectId]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -208,8 +186,6 @@ function MeetingMain() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <Container>
@@ -227,7 +203,6 @@ function MeetingMain() {
                   key={author}
                   onClick={() => {
                     setAuthorFilter(author);
-                    setCurrentPage(1);
                     setDropdownOpen(false);
                   }}
                 >
@@ -237,7 +212,6 @@ function MeetingMain() {
               <DropdownItem
                 onClick={() => {
                   setAuthorFilter("");
-                  setCurrentPage(1);
                   setDropdownOpen(false);
                 }}
               >
@@ -280,21 +254,6 @@ function MeetingMain() {
           </tbody>
         </Table>
       </TableWrapper>
-
-      {/* 페이지네이션 */}
-      <Pagination>
-        <span onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}>{"<"}</span>
-        {Array.from({ length: totalPages }, (_, i) => (
-          <span
-            key={i}
-            className={currentPage === i + 1 ? "active" : ""}
-            onClick={() => setCurrentPage(i + 1)}
-          >
-            {i + 1}
-          </span>
-        ))}
-        <span onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}>{">"}</span>
-      </Pagination>
     </Container>
   );
 }

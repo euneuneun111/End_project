@@ -79,7 +79,7 @@ function MeetingDetail() {
   useEffect(() => {
     const fetchMeeting = async () => {
       try {
-        const res = await axios.get(`/project/organization/${projectId}/api/meeting/${id}`, {
+        const res = await axios.get(`/project/organization/${projectId}/meeting/api/meeting/${id}`, {
           withCredentials: true,
         });
         setMeeting(res.data);
