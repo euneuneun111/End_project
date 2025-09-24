@@ -24,6 +24,6 @@ public interface ProjectOrgService {
     
     boolean joinProject(String projectId, String username);
 
-
+    boolean leaveProject(String projectId, String username);
 
 }

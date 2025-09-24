@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -328,5 +330,27 @@ public class MeetingController {
         return result;
     }
     
+    @PostMapping("/api/submit")
+    @ResponseBody
+    public Map<String, Object> submitMeeting(
+            @PathVariable("projectId") String projectId,
+            @RequestBody Map<String, Object> payload) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            int meetingId = Integer.parseInt(payload.get("meetingId").toString());
+            String status = payload.get("status").toString();
+
+            // 서비스 호출: MeetingVO 반환
+            MeetingVO updatedMeeting = meetingService.updateStatus(projectId, meetingId, status);
+
+            result.put("success", true);
+            result.put("meeting", updatedMeeting);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("error", "회의 상태 변경 실패");
+        }
+        return result;
+    }
 }
 

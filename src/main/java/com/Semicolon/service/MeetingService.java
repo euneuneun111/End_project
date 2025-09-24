@@ -24,5 +24,8 @@ public interface MeetingService {
     List<String> getProjectManagers(String projectId) throws SQLException;
 
     String toggleApprovalStatus(int meetingId) throws SQLException;
+    
+    MeetingVO updateStatus(String projectId, int meetingId, String status) throws SQLException;
+
 
 }

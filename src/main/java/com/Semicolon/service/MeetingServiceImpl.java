@@ -97,5 +97,21 @@ public class MeetingServiceImpl implements MeetingService {
 
         return newStatus;
     }
+
+	@Override
+	public MeetingVO updateStatus(String projectId, int meetingId, String status) throws SQLException {
+	    // 1. 해당 회의 가져오기
+	    MeetingVO meeting = meetingDAO.selectMeetingById(meetingId);
+
+	    if (meeting != null && projectId.equals(meeting.getProjectId())) {
+	        // 2. 상태 변경
+	        meeting.setStatus(status);
+
+	        // 3. DB 업데이트
+	        meetingDAO.updateMeetingStatus(meetingId, status);
+	    }
+
+	    return meeting;
+	}
 }
 	

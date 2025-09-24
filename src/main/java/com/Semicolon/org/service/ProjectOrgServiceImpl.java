@@ -69,4 +69,29 @@ public class ProjectOrgServiceImpl implements ProjectOrgService {
 	        return true;
 	    }
 
+	 @Override
+	 public boolean leaveProject(String projectId, String username) {
+	     ProjectOrgDTO project = projectOrgDAO.selectProjectDetail(projectId);
+	     if (project == null) return false;
+
+	     String managers = project.getProjectManager();
+	     if (managers == null || managers.isEmpty()) return false;
+
+	     // 콤마로 분리 → 리스트로 변환
+	     List<String> managerList = new java.util.ArrayList<>(
+	         java.util.Arrays.asList(managers.split(",")));
+
+	     // 해당 username 제거
+	     boolean removed = managerList.removeIf(user -> user.trim().equals(username));
+	     if (!removed) return false; // 해당 사용자가 없으면 false 반환
+
+	     // 다시 콤마로 join
+	     String updatedManagers = String.join(",", managerList);
+	     project.setProjectManager(updatedManagers);
+
+	     // DB 반영
+	     projectOrgDAO.updateProject(project);
+
+	     return true;
+	 }
 }

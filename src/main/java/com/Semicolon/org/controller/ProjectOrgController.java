@@ -37,7 +37,7 @@ import com.Semicolon.org.service.ProjectOrgService;
 @Controller
 @RequestMapping("/org/myproject")
 public class ProjectOrgController {
-	
+
 	private final ProjectOrgService projectOrgService;
 	private final MemberService memberService;
 
@@ -159,26 +159,23 @@ public class ProjectOrgController {
 		return memberService.findNicknamesByKeyword(keyword);
 	}
 
-	
-	
 	// ================= React Projectbar용 API =================
 	@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 	@GetMapping("/api/projects")
 	@ResponseBody
 	public List<ProjectOrgDTO> getProjectListForReact(HttpSession session) {
-	    // 세션에서 로그인 유저 가져오기
-	    MemberVO loginUser = (MemberVO) session.getAttribute("loginUser");
+		// 세션에서 로그인 유저 가져오기
+		MemberVO loginUser = (MemberVO) session.getAttribute("loginUser");
 
-	    if (loginUser == null) {
-	        throw new RuntimeException("로그인 정보가 없습니다.");
-	    }
+		if (loginUser == null) {
+			throw new RuntimeException("로그인 정보가 없습니다.");
+		}
 
-	    // 사용자 이름(또는 아이디) 가져오기
-	    String username = loginUser.getName(); // getId()라면 ID 기준으로 변경
-	    
+		// 사용자 이름(또는 아이디) 가져오기
+		String username = loginUser.getName(); // getId()라면 ID 기준으로 변경
 
-	    // 로그인한 사용자만의 프로젝트 반환
-	    return projectOrgService.getProjectsByUser(username);
+		// 로그인한 사용자만의 프로젝트 반환
+		return projectOrgService.getProjectsByUser(username);
 	}
 
 	@GetMapping("/api/detail")
@@ -191,139 +188,170 @@ public class ProjectOrgController {
 		return ResponseEntity.ok(project);
 	}
 
-	
-	 /** React에서 프로젝트 생성 처리 */
-    @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
-    @PostMapping("/api/create")
-    @ResponseBody
-    public ResponseEntity<String> createProject(
-            @RequestParam("projectName") String projectName,
-            @RequestParam("projectDesc") String projectDesc,
-            @RequestParam("projectManager") String projectManager, // 쉼표로 구분된 닉네임
-            @RequestParam(value = "projectLogo", required = false) List<MultipartFile> projectLogoFiles
-    ) {
-        try {
-            // DTO 생성
-            ProjectOrgDTO project = new ProjectOrgDTO();
-            int seq = projectOrgService.getProjectSeq();
-            String projectId = String.format("PRJ-%03d", seq);
-            project.setProjectId(projectId);
-            project.setProjectName(projectName);
-            project.setProjectDesc(projectDesc);
-            project.setProjectManager(projectManager);
-
-            // 이미지 파일 처리
-            if (projectLogoFiles != null) {
-                for (MultipartFile file : projectLogoFiles) {
-                    if (!file.isEmpty()) {
-                        String uuid = UUID.randomUUID().toString().replace("-", "");
-                        String savedFileName = uuid + "$$" + file.getOriginalFilename();
-                        File target = new File(projectUploadPath, savedFileName);
-                        target.getParentFile().mkdirs();
-                        file.transferTo(target);
-
-                        // 첫 번째 파일만 로고로 지정
-                        if (project.getProjectLogo() == null) {
-                            project.setProjectLogo(savedFileName);
-                        }
-                    }
-                }
-            }
-
-            projectOrgService.insertProject(project);
-            return ResponseEntity.ok("프로젝트 생성 성공");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("프로젝트 생성 실패");
-        }
-    }
-    
-    // 🔍 프로젝트 이름으로 검색
-    @GetMapping("/api/projects/search")
+	/** React에서 프로젝트 생성 처리 */
+	@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+	@PostMapping("/api/create")
 	@ResponseBody
-    public List<ProjectOrgDTO> searchProjects(@RequestParam("name") String projectName) {
-    	return projectOrgService.searchProjectsByName(projectName);
-    }
-    
-    @GetMapping("/api/getLogo")
-    @ResponseBody
-    public ResponseEntity<byte[]> getapiProjectLogo(@RequestParam String projectId) {
-        ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
+	public ResponseEntity<String> createProject(@RequestParam("projectName") String projectName,
+			@RequestParam("projectDesc") String projectDesc, @RequestParam("projectManager") String projectManager, // 쉼표로
+																													// 구분된
+																													// 닉네임
+			@RequestParam(value = "projectLogo", required = false) List<MultipartFile> projectLogoFiles) {
+		try {
+			// DTO 생성
+			ProjectOrgDTO project = new ProjectOrgDTO();
+			int seq = projectOrgService.getProjectSeq();
+			String projectId = String.format("PRJ-%03d", seq);
+			project.setProjectId(projectId);
+			project.setProjectName(projectName);
+			project.setProjectDesc(projectDesc);
+			project.setProjectManager(projectManager);
 
-        // 프로젝트 또는 로고 없으면 404
-        if (project == null || project.getProjectLogo() == null || project.getProjectLogo().isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+			// 이미지 파일 처리
+			if (projectLogoFiles != null) {
+				for (MultipartFile file : projectLogoFiles) {
+					if (!file.isEmpty()) {
+						String uuid = UUID.randomUUID().toString().replace("-", "");
+						String savedFileName = uuid + "$$" + file.getOriginalFilename();
+						File target = new File(projectUploadPath, savedFileName);
+						target.getParentFile().mkdirs();
+						file.transferTo(target);
 
-        // 실제 파일 경로
-        File file = new File(projectUploadPath, project.getProjectLogo());
-        if (!file.exists()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+						// 첫 번째 파일만 로고로 지정
+						if (project.getProjectLogo() == null) {
+							project.setProjectLogo(savedFileName);
+						}
+					}
+				}
+			}
 
-        try (InputStream in = new FileInputStream(file)) {
-            byte[] bytes = IOUtils.toByteArray(in);
+			projectOrgService.insertProject(project);
+			return ResponseEntity.ok("프로젝트 생성 성공");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("프로젝트 생성 실패");
+		}
+	}
 
-            // Content-Type 설정
-            String lowerName = project.getProjectLogo().toLowerCase();
-            org.springframework.http.MediaType mediaType;
-            if (lowerName.endsWith(".png")) {
-                mediaType = org.springframework.http.MediaType.IMAGE_PNG;
-            } else if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
-                mediaType = org.springframework.http.MediaType.IMAGE_JPEG;
-            } else if (lowerName.endsWith(".gif")) {
-                mediaType = org.springframework.http.MediaType.IMAGE_GIF;
-            } else {
-                mediaType = org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-            }
+	// 🔍 프로젝트 이름으로 검색
+	@GetMapping("/api/projects/search")
+	@ResponseBody
+	public List<ProjectOrgDTO> searchProjects(@RequestParam("name") String projectName) {
+		return projectOrgService.searchProjectsByName(projectName);
+	}
 
-            return ResponseEntity.ok()
-                    .contentType(mediaType)
-                    .body(bytes);
+	@GetMapping("/api/getLogo")
+	@ResponseBody
+	public ResponseEntity<byte[]> getapiProjectLogo(@RequestParam String projectId) {
+		ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    
-    @PostMapping("/api/join")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> joinProject(
-            @RequestBody Map<String, String> body,
-            HttpSession session) {
+		// 프로젝트 또는 로고 없으면 404
+		if (project == null || project.getProjectLogo() == null || project.getProjectLogo().isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 
-        String projectId = body.get("projectId"); // JSON에서 추출
-        Map<String, Object> result = new HashMap<>();
+		// 실제 파일 경로
+		File file = new File(projectUploadPath, project.getProjectLogo());
+		if (!file.exists()) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 
-        MemberVO loginUser = (MemberVO) session.getAttribute("loginUser");
-        if (loginUser == null) {
-            result.put("success", false);
-            result.put("message", "로그인이 필요합니다.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
-        }
+		try (InputStream in = new FileInputStream(file)) {
+			byte[] bytes = IOUtils.toByteArray(in);
 
-        String username = loginUser.getName();
+			// Content-Type 설정
+			String lowerName = project.getProjectLogo().toLowerCase();
+			org.springframework.http.MediaType mediaType;
+			if (lowerName.endsWith(".png")) {
+				mediaType = org.springframework.http.MediaType.IMAGE_PNG;
+			} else if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+				mediaType = org.springframework.http.MediaType.IMAGE_JPEG;
+			} else if (lowerName.endsWith(".gif")) {
+				mediaType = org.springframework.http.MediaType.IMAGE_GIF;
+			} else {
+				mediaType = org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+			}
 
-        try {
-            boolean joined = projectOrgService.joinProject(projectId, username);
+			return ResponseEntity.ok().contentType(mediaType).body(bytes);
 
-            if (joined) {
-                result.put("success", true);
-                result.put("message", "프로젝트에 참여했습니다.");
-            } else {
-                result.put("success", false);
-                result.put("message", "이미 참여한 프로젝트입니다.");
-            }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "참여 중 오류가 발생했습니다.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-        }
-    }
+	@PostMapping("/api/join")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> joinProject(@RequestBody Map<String, String> body, HttpSession session) {
 
+		String projectId = body.get("projectId"); // JSON에서 추출
+		Map<String, Object> result = new HashMap<>();
+
+		MemberVO loginUser = (MemberVO) session.getAttribute("loginUser");
+		if (loginUser == null) {
+			result.put("success", false);
+			result.put("message", "로그인이 필요합니다.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+		}
+
+		String username = loginUser.getName();
+
+		try {
+			boolean joined = projectOrgService.joinProject(projectId, username);
+
+			if (joined) {
+				result.put("success", true);
+				result.put("message", "프로젝트에 참여했습니다.");
+			} else {
+				result.put("success", false);
+				result.put("message", "이미 참여한 프로젝트입니다.");
+			}
+
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("success", false);
+			result.put("message", "참여 중 오류가 발생했습니다.");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+		}
+	}
+
+	// 프로젝트 탈퇴 API
+	@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+	@PostMapping("/api/leave")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> leaveProject(@RequestBody Map<String, String> body,
+			HttpSession session) {
+		Map<String, Object> result = new HashMap<>();
+
+		MemberVO loginUser = (MemberVO) session.getAttribute("loginUser");
+		if (loginUser == null) {
+			result.put("success", false);
+			result.put("message", "로그인이 필요합니다.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+		}
+
+		String username = loginUser.getName(); // 로그인 유저 이름(또는 ID)
+		String projectId = body.get("projectId");
+
+		try {
+			boolean success = projectOrgService.leaveProject(projectId, username);
+
+			if (success) {
+				result.put("success", true);
+				result.put("message", "프로젝트 탈퇴 완료");
+				return ResponseEntity.ok(result);
+			} else {
+				result.put("success", false);
+				result.put("message", "이미 탈퇴했거나 참여하지 않은 프로젝트입니다.");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			result.put("success", false);
+			result.put("message", "서버 오류 발생: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+		}
+	}
 
 }
