@@ -89,8 +89,8 @@ const StatusTd = styled(Td)`
     $status === "검토 전"
       ? "#888888"
       : $status === "검토 중"
-      ? "#f0ad4e"
-      : "#28a745"};
+        ? "#f0ad4e"
+        : "#28a745"};
 `;
 
 const DropdownWrapper = styled.div`
@@ -158,35 +158,31 @@ function MeetingMain() {
   const dropdownRef = useRef(null);
 
   // 회의 목록 불러오기
-  const getMeetingList = async (keyword = "", author = "") => {
+  const getMeetingList = async () => {
     try {
       const res = await axios.get(
         `/project/organization/${projectId}/meeting/api/meeting/list`,
-        {
-          withCredentials: true,
-          params: { keyword, author },
-        }
+        { withCredentials: true }
       );
-      setMeetings(res.data.meetingList || []);
+      const data = res.data.meetingList || [];
+      setMeetings(data);
+
+      // 주관자 옵션 생성
+      const authors = Array.from(new Set(data.map((m) => m.author)));
+      setAuthorOptions(authors);
     } catch (error) {
       console.error("회의 목록 조회 실패:", error);
     }
   };
 
-  // 회의 데이터 변경 시 고유 주관자(author) 목록 업데이트
   useEffect(() => {
-    if (meetings.length > 0) {
-      const authors = [...new Set(meetings.map((m) => m.author))];
-      setAuthorOptions(authors);
-    }
-  }, [meetings]);
+    if (projectId) getMeetingList();
+  }, [projectId]);
 
-  // 검색 또는 필터 변경 시 회의 목록 갱신
-  useEffect(() => {
-    if (projectId) {
-      getMeetingList(search, authorFilter);
-    }
-  }, [search, authorFilter, projectId]);
+  // 주관자 필터링
+  const filteredMeetings = authorFilter
+    ? meetings.filter((m) => m.author === authorFilter)
+    : meetings;
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -204,12 +200,21 @@ function MeetingMain() {
       <ProjectHeader />
       <TopBar>
         <DropdownWrapper ref={dropdownRef}>
-          <DropdownHeader onClick={() => setDropdownOpen(!dropdownOpen)}>
+          <DropdownHeader onClick={() => setDropdownOpen((prev) => !prev)}>
             {authorFilter || "주관자 선택"}
             <Arrow open={dropdownOpen}>▼</Arrow>
           </DropdownHeader>
+
           {dropdownOpen && (
             <DropdownList>
+              <DropdownItem
+                onClick={() => {
+                  setAuthorFilter(""); // 전체 선택
+                  setDropdownOpen(false);
+                }}
+              >
+                전체
+              </DropdownItem>
               {authorOptions.map((author) => (
                 <DropdownItem
                   key={author}
@@ -221,18 +226,13 @@ function MeetingMain() {
                   {author}
                 </DropdownItem>
               ))}
-              <DropdownItem
-                onClick={() => {
-                  setAuthorFilter("");
-                  setDropdownOpen(false);
-                }}
-              >
-                전체
-              </DropdownItem>
             </DropdownList>
           )}
         </DropdownWrapper>
-        <Button onClick={() => navigate(`/meeting/create/${projectId}`)}>+ 회의록</Button>
+
+        <Button onClick={() => navigate(`/meeting/create/${projectId}`)}>
+          + 회의록
+        </Button>
       </TopBar>
 
       <TableWrapper>
@@ -252,12 +252,16 @@ function MeetingMain() {
             </tr>
           </thead>
           <tbody>
-            {meetings.map((meeting) => (
+            {filteredMeetings.map((meeting) => (
               <tr
                 key={meeting.id}
-                onClick={() => navigate(`/meeting/detail/${projectId}/${meeting.id}`)}
+                onClick={() =>
+                  navigate(`/meeting/detail/${projectId}/${meeting.id}`)
+                }
               >
-                <Td>{new Date(meeting.meetingDate).toLocaleDateString()}</Td>
+                <Td>
+                  {new Date(meeting.meetingDate).toLocaleDateString()}
+                </Td>
                 <TitleTd>{meeting.title}</TitleTd>
                 <Td>{meeting.author}</Td>
                 <StatusTd $status={meeting.status}>{meeting.status}</StatusTd>

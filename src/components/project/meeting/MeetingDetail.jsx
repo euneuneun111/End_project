@@ -72,16 +72,17 @@ const Button = styled.button.attrs(({ $variant, ...rest }) => rest)`
 `;
 
 function MeetingDetail() {
-  const { projectId, id } = useParams(); // ✅ projectId 함께 받기
+  const { projectId, id } = useParams(); 
   const navigate = useNavigate();
   const [meeting, setMeeting] = useState(null);
 
   useEffect(() => {
     const fetchMeeting = async () => {
       try {
-        const res = await axios.get(`/project/organization/${projectId}/meeting/api/meeting/${id}`, {
-          withCredentials: true,
-        });
+        const res = await axios.get(
+          `/project/organization/${projectId}/meeting/api/meeting/${id}`,
+          { withCredentials: true }
+        );
         setMeeting(res.data);
       } catch (error) {
         console.error("회의 상세 조회 실패:", error);
@@ -89,6 +90,23 @@ function MeetingDetail() {
     };
     if (projectId && id) fetchMeeting();
   }, [projectId, id]);
+
+  // 삭제 버튼 클릭 처리
+  const handleDelete = async () => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+
+    try {
+      await axios.get(
+        `/project/organization/${projectId}/meeting/api/remove?id=${id}`,
+        { withCredentials: true }
+      );
+      alert("회의가 삭제되었습니다.");
+      navigate(`/meeting/main/${projectId}`); // 삭제 후 목록 페이지 이동
+    } catch (err) {
+      console.error("삭제 실패:", err);
+      alert("삭제 중 오류가 발생했습니다.");
+    }
+  };
 
   if (!meeting) return <div>로딩 중...</div>;
 
@@ -121,7 +139,7 @@ function MeetingDetail() {
       <TextArea value={meeting.content} readOnly />
 
       <ButtonBar>
-        <Button $variant="danger">삭제</Button>
+        <Button $variant="danger" onClick={handleDelete}>삭제</Button>
         <Button $variant="primary" onClick={() => navigate(`/meeting/modify/${projectId}/${meeting.id}`)}>
           수정
         </Button>
