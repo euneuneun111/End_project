@@ -88,6 +88,7 @@ public class MeetingController {
         return url;
     }
     
+    //완료
     @GetMapping("/detail")
     public ModelAndView detail(
             @PathVariable("projectId") String projectId,
