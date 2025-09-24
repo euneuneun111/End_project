@@ -7,14 +7,13 @@ import axios from "axios";
 /* ================= Styled Components ================= */
 const Container = styled.div`
   width: 100%;
-  padding: 8px;
+  padding: 16px;
   font-family: "Poppins", sans-serif;
   background-color: #fafafa;
-  min-height: 100px;
+  min-height: 100vh;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
 `;
+
 
 const TopBar = styled.div`
   display: flex;
@@ -86,13 +85,11 @@ const TitleTd = styled(Td)`
 const StatusTd = styled(Td)`
   font-weight: bold;
   color: ${({ $status }) =>
-    $status === "검토 전"
-      ? "#888888"
-      : $status === "검토 중"
-        ? "#f0ad4e"
-        : "#28a745"};
+    $status === "검토 전" ? "#888888" :  /* 회색 */
+      $status === "보류" ? "#f0ad4e" :     /* 주황 */
+        $status === "승인" ? "#28a745" :     /* 초록 */
+          "#333"};                              /* 기본 글자색 */
 `;
-
 const DropdownWrapper = styled.div`
   position: relative;
   width: 150px;

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 // ================= styled-components =================
 const MyPCard = styled.h2`
@@ -11,18 +12,17 @@ const MyPCard = styled.h2`
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: -12px;
-`
+`;
 
 const ProjectListWrapper = styled.div`
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
   margin-top: 16px;
-  max-height: 430px;   /* 스크롤 영역 높이 */
+  max-height: 430px;
   overflow-y: auto;
   padding-right: 6px;
 
-  /* 스크롤바 디자인 */
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -95,6 +95,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
+  position: relative; /* X 버튼 위치 위해 relative 설정 */
   background: white;
   border-radius: 8px;
   padding: 20px;
@@ -106,6 +107,22 @@ const ModalTitle = styled.h3`
   margin-bottom: 16px;
   font-size: 18px;
   color: #333;
+`;
+
+const CloseXButton = styled.button`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #555;
+
+  &:hover {
+    color: #000;
+  }
 `;
 
 const ModalLinks = styled.div`
@@ -121,16 +138,22 @@ const ModalLinks = styled.div`
       text-decoration: underline;
     }
   }
-`;
 
-const CloseButton = styled.button`
-  margin-top: 16px;
-  background: #4287c4;
-  color: white;
+ button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  background-color: #ff8fa5; /* 부드러운 핑크 */
+  color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 6px 12px;
   cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #ff6292; /* 호버 시 진한 핑크 */
+  }
+}
 `;
 
 // ================= Component =================
@@ -144,48 +167,78 @@ function MyProject({ projects }) {
     return <p>참여 중인 프로젝트가 없습니다.</p>;
   }
 
+  const handleLeaveProject = async (projectId, projectName) => {
+    if (!window.confirm(`정말 "${projectName}" 프로젝트에서 탈퇴하시겠습니까?`)) return;
+
+    try {
+      const res = await axios.post(
+        `/project/org/myproject/api/leave`,
+        { projectId }, // ✅ 여기서 projectId 전달
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        alert("프로젝트 탈퇴 완료");
+        closeModal();
+        window.location.reload(); // 또는 상태 업데이트로 프로젝트 리스트 갱신
+      } else {
+        alert("탈퇴 실패: " + res.data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("탈퇴 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <>
-    <MyPCard>내 프로젝트</MyPCard>
-    <ProjectListWrapper>
-      {projects.map((project) => (
-        <ProjectCard key={project.projectId}>
-          <CardHeader>
-            {project.projectName}
-            <ShortcutButton onClick={() => openModal(project.projectId)}>
-              바로가기
-            </ShortcutButton>
-          </CardHeader>
-          <CardContent>
-            <InfoRow><strong>Project ID: </strong> {project.projectId}</InfoRow>
-            <InfoRow>
-              <strong>Start Date:</strong>{" "}
-              {new Date(project.projectStartDate).toLocaleDateString()}
-            </InfoRow>
-            <InfoRow><strong>Manager:</strong> {project.projectManager}</InfoRow>
-            <InfoRow><strong>Description:</strong> {project.projectDesc}</InfoRow>
-          </CardContent>
+      <MyPCard>내 프로젝트</MyPCard>
+      <ProjectListWrapper>
+        {projects.map((project) => (
+          <ProjectCard key={project.projectId}>
+            <CardHeader>
+              {project.projectName}
+              <ShortcutButton onClick={() => openModal(project.projectId)}>
+                바로가기
+              </ShortcutButton>
+            </CardHeader>
+            <CardContent>
+              <InfoRow><strong>Project ID: </strong> {project.projectId}</InfoRow>
+              <InfoRow>
+                <strong>Start Date:</strong>{" "}
+                {new Date(project.projectStartDate).toLocaleDateString()}
+              </InfoRow>
+              <InfoRow><strong>Manager:</strong> {project.projectManager}</InfoRow>
+              <InfoRow><strong>Description:</strong> {project.projectDesc}</InfoRow>
+            </CardContent>
 
-          {/* 모달 */}
-          {openProjectId === project.projectId && (
-            <ModalOverlay onClick={closeModal}>
-              <ModalContent onClick={(e) => e.stopPropagation()}>
-                <ModalTitle>{project.projectName} 바로가기</ModalTitle>
-                <ModalLinks>
-                  <Link  to={`/issue/main/${project.projectId}`}>Issue</Link>
-                  <Link to={`/gant/main/${project.projectId}`}>Gantt</Link>
-                  <Link to={`/calendar/main/${project.projectId}`}>Calendar</Link>
-                  <Link to={`/task/main/${project.projectId}`}>Task</Link>
-                  <Link to={`/report/main/${project.projectId}`}>Report</Link>
-                  <Link to={`/meeting/main/${project.projectId}`}>Meeting</Link>
-                </ModalLinks>
-                <CloseButton onClick={closeModal}>닫기</CloseButton>
-              </ModalContent>
-            </ModalOverlay>
-          )}
-        </ProjectCard>
-      ))}
-    </ProjectListWrapper>
+            {/* 모달 */}
+            {openProjectId === project.projectId && (
+              <ModalOverlay onClick={closeModal}>
+                <ModalContent onClick={(e) => e.stopPropagation()}>
+                  <ModalTitle>{project.projectName} 바로가기</ModalTitle>
+                  <CloseXButton onClick={closeModal}>×</CloseXButton>
+                  <ModalLinks>
+                    <Link to={`/issue/main/${project.projectId}`}>Issue</Link>
+                    <Link to={`/gant/main/${project.projectId}`}>Gantt</Link>
+                    <Link to={`/calendar/main/${project.projectId}`}>Calendar</Link>
+                    <Link to={`/task/main/${project.projectId}`}>Task</Link>
+                    <Link to={`/report/main/${project.projectId}`}>Report</Link>
+                    <Link to={`/meeting/main/${project.projectId}`}>Meeting</Link>
+
+                    {/* 프로젝트 탈퇴 버튼 */}
+                    <button
+                      onClick={() => handleLeaveProject(project.projectId, project.projectName)}
+                    >
+                      프로젝트 탈퇴
+                    </button>
+                  </ModalLinks>
+                </ModalContent>
+              </ModalOverlay>
+            )}
+          </ProjectCard>
+        ))}
+      </ProjectListWrapper>
     </>
   );
 }

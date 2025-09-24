@@ -91,7 +91,7 @@ function ProjectMain() {
     <Container>
       <h1>{project.projectName}</h1>
       <p>{project.projectDesc}</p>
-      <p>관리자: {project.projectManager}</p>
+      <p>멤버: {project.projectManager}</p>
       {logoUrl && <LogoImage src={logoUrl} alt="프로젝트 로고" width={200} />}
       <JoinButton onClick={handleJoin}>참여하기</JoinButton>
     </Container>
