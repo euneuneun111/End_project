@@ -63,7 +63,7 @@ const customStyles = {
   }),
   option: (provided, state) => ({
     ...provided,
-    backgroundColor: state.isSelected ? '#7c3aed' : state.isFocused ? '#f3e8ff' : 'white',
+    backgroundColor: state.isSelected ? '#4fa5eb' : state.isFocused ? '#f3e8ff' : 'white',
     color: state.isSelected ? 'white' : '#333',
     fontSize: '14px',
   }),
@@ -398,7 +398,7 @@ const SearchInput = styled.input`
 `;
 
 const NewIssueButton = styled.button`
-  background-color: #7c3aed;
+  background-color: #4fa5eb;
   color: white;
   border: none;
   padding: 8px 12px;

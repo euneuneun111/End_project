@@ -25,10 +25,10 @@ const PageButton = styled.button`
   }
 
   &[aria-current] {
-    background-color: #7c3aed;
+    background-color: #3690d9;
     color: white;
     font-weight: bold;
-    border-color: #7c3aed;
+    border-color: #3690d9;
   }
 
   &:disabled {

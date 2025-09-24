@@ -42,7 +42,7 @@ const customStyles = {
   }),
   option: (provided, state) => ({
     ...provided,
-    backgroundColor: state.isSelected ? '#7c3aed' : state.isFocused ? '#f3e8ff' : 'white',
+    backgroundColor: state.isSelected ? '#4fa5eb' : state.isFocused ? '#f3e8ff' : 'white',
     color: state.isSelected ? 'white' : '#333',
     fontSize: '14px',
   }),
@@ -206,103 +206,105 @@ const DeleteButton = styled.button`
 
 // --- 모달 컴포넌트 ---
 function NewTaskModal({ onClose, onSave, managerOptions }) {
-  const [form, setForm] = useState({
-    taskTitle: "",
-    taskDescription: "",
-    taskStatus: "대기 중",
-    taskUrgency: "보통",
-    taskManagerId: "",
-    taskStartDate: "",
-    taskEndDate: "",
-    taskProgress: 0,
-  });
-  const [errors, setErrors] = useState({});
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
- const handleSelectChange = (selectedOption, actionMeta) => {
-    const value = selectedOption ? selectedOption.value : "";
-    setForm({ ...form, [actionMeta.name]: value });
-  };
-
-  const handleSubmit = () => {
-    const newErrors = {};
-    if (!form.taskTitle.trim()) newErrors.taskTitle = "❗ 일감 이름을 입력하세요.";
-    if (!form.taskStartDate) newErrors.taskStartDate = "❗ 시작일을 선택하세요.";
-    if (!form.taskManagerId) newErrors.taskManagerId = "❗ 담당자를 선택하세요.";
+    const [form, setForm] = useState({
+        taskTitle: "",
+        taskDescription: "",
+        taskStatus: "대기 중",
+        taskUrgency: "보통",
+        taskManagerId: "",
+        taskStartDate: "",
+        taskEndDate: "",
+        taskProgress: 0,
+    });
+    const [errors, setErrors] = useState({});
     
-    // 종료일이 시작일보다 빠를 경우 에러 처리
-    if (form.taskStartDate && form.taskEndDate && form.taskEndDate < form.taskStartDate) {
-        newErrors.taskEndDate = "❗ 종료일은 시작일보다 빠를 수 없습니다.";
-    }
+    // ✨ 일반 input을 위한 핸들러도 안전한 방식으로 변경
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prevForm => ({ ...prevForm, [name]: value }));
+    };
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-    } else {
-      setErrors({});
-      onSave(form);
-    }
-  };
+    // ✨✨✨ 이 함수를 최신 버전으로 수정했습니다! ✨✨✨
+    const handleSelectChange = (selectedOption, actionMeta) => {
+        const value = selectedOption ? selectedOption.value : "";
+        setForm(prevForm => ({
+            ...prevForm,
+            [actionMeta.name]: value
+        }));
+    };
 
-  return (
-    <ModalOverlay onClick={onClose}>
-      <ModalWrapper onClick={(e) => e.stopPropagation()}>
-        <ModalHeader><h2>새 일감 생성</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
+    const handleSubmit = () => {
+        const newErrors = {};
+        if (!form.taskTitle.trim()) newErrors.taskTitle = "❗ 일감 이름을 입력하세요.";
+        if (!form.taskStartDate) newErrors.taskStartDate = "❗ 시작일을 선택하세요.";
+        if (!form.taskManagerId) newErrors.taskManagerId = "❗ 담당자를 선택하세요.";
         
-        {/* 3. 각 입력 필드 아래에 에러 메시지 조건부 렌더링 */}
-        <FormGroup>
-          <FormLabel>일감 이름</FormLabel>
-          <FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} />
-          {errors.taskTitle && <ErrorMessage>{errors.taskTitle}</ErrorMessage>}
-        </FormGroup>
+        if (form.taskStartDate && form.taskEndDate && form.taskEndDate < form.taskStartDate) {
+            newErrors.taskEndDate = "❗ 종료일은 시작일보다 빠를 수 없습니다.";
+        }
 
-        <FormGroup>
-          <FormLabel>일감 설명</FormLabel>
-          <FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} />
-        </FormGroup>
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+        } else {
+            setErrors({});
+            onSave(form);
+        }
+    };
 
-        <FormGroup>
-          <FormLabel>일감 상태</FormLabel>
-          <Select name="taskStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.taskStatus)} />
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>시작일</FormLabel>
-          <FormInput type="date" name="taskStartDate" value={form.taskStartDate} onChange={handleChange} />
-          {errors.taskStartDate && <ErrorMessage>{errors.taskStartDate}</ErrorMessage>}
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>종료일</FormLabel>
-          <FormInput type="date" name="taskEndDate" value={form.taskEndDate} onChange={handleChange} />
-          {errors.taskEndDate && <ErrorMessage>{errors.taskEndDate}</ErrorMessage>}
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>우선순위</FormLabel>
-          <Select name="taskUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.taskUrgency)} />
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>담당자</FormLabel>
-          <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} placeholder="담당자 선택..." />
-          {errors.taskManagerId && <ErrorMessage>{errors.taskManagerId}</ErrorMessage>}
-        </FormGroup>
-
-        <FormGroup>
-          <FormLabel>진행도: {form.taskProgress || 0}%</FormLabel>
-          <FormInput type="range" name="taskProgress" min="0" max="100" step="10" value={form.taskProgress || 0} onChange={handleChange} />
-        </FormGroup>
-
-        <ModalFooter>
-            {/* 4. onClick 이벤트에 handleSubmit 연결 */}
-            <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
-            <DeleteButton onClick={onClose}>× 취소</DeleteButton>
-        </ModalFooter>
-      </ModalWrapper>
-    </ModalOverlay>
-  );
+    return (
+        <ModalOverlay onClick={onClose}>
+            <ModalWrapper onClick={(e) => e.stopPropagation()}>
+                <ModalHeader><h2>새 일감 생성</h2><CloseButton onClick={onClose}>&times;</CloseButton></ModalHeader>
+                <FormGroup>
+                    <FormLabel>일감 이름</FormLabel>
+                    <FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} />
+                    {errors.taskTitle && <ErrorMessage>{errors.taskTitle}</ErrorMessage>}
+                </FormGroup>
+                <FormGroup>
+                    <FormLabel>일감 설명</FormLabel>
+                    <FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} />
+                </FormGroup>
+                <FormGroup>
+                    <FormLabel>일감 상태</FormLabel>
+                    <Select name="taskStatus" styles={customStyles} options={statusOptions} onChange={handleSelectChange} value={statusOptions.find(opt => opt.value === form.taskStatus)} />
+                </FormGroup>
+                <FormGroup>
+                    <FormLabel>시작일</FormLabel>
+                    <FormInput type="date" name="taskStartDate" value={form.taskStartDate} onChange={handleChange} />
+                    {errors.taskStartDate && <ErrorMessage>{errors.taskStartDate}</ErrorMessage>}
+                </FormGroup>
+                <FormGroup>
+                    <FormLabel>종료일</FormLabel>
+                    <FormInput type="date" name="taskEndDate" value={form.taskEndDate} onChange={handleChange} />
+                    {errors.taskEndDate && <ErrorMessage>{errors.taskEndDate}</ErrorMessage>}
+                </FormGroup>
+                <FormGroup>
+                    <FormLabel>우선순위</FormLabel>
+                    <Select name="taskUrgency" styles={customStyles} options={urgencyOptions} onChange={handleSelectChange} value={urgencyOptions.find(opt => opt.value === form.taskUrgency)} />
+                </FormGroup>
+                <FormGroup>
+                    <FormLabel>담당자</FormLabel>
+                    <Select
+                        name="taskManagerId"
+                        styles={customStyles}
+                        options={managerOptions}
+                        onChange={handleSelectChange}
+                        value={managerOptions.find(opt => opt.value === form.taskManagerId) || null}
+                        placeholder="담당자 선택..."
+                    />
+                    {errors.taskManagerId && <ErrorMessage>{errors.taskManagerId}</ErrorMessage>}
+                </FormGroup>
+                <FormGroup>
+                    <FormLabel>진행도: {form.taskProgress || 0}%</FormLabel>
+                    <FormInput type="range" name="taskProgress" min="0" max="100" step="10" value={form.taskProgress || 0} onChange={handleChange} />
+                </FormGroup>
+                <ModalFooter>
+                    <SaveButton onClick={handleSubmit}>+ 등록</SaveButton>
+                    <DeleteButton onClick={onClose}>× 취소</DeleteButton>
+                </ModalFooter>
+            </ModalWrapper>
+        </ModalOverlay>
+    );
 }
 
 function TaskDetailModal({ task, onClose, onUpdate, onDelete, managerOptions }) {
@@ -324,9 +326,15 @@ function TaskDetailModal({ task, onClose, onUpdate, onDelete, managerOptions }) 
         <FormGroup><FormLabel>일감 이름</FormLabel><FormInput name="taskTitle" value={form.taskTitle} onChange={handleChange} /></FormGroup>
         <FormGroup><FormLabel>일감 설명</FormLabel><FormTextarea name="taskDescription" value={form.taskDescription} onChange={handleChange} /></FormGroup>
         <FormGroup>
-            <FormLabel>담당자</FormLabel>
-            <Select name="taskManagerId" styles={customStyles} options={managerOptions} onChange={handleSelectChange} value={managerOptions.find(opt => opt.value === form.taskManagerId)} />
-        </FormGroup>
+    <FormLabel>담당자</FormLabel>
+    <Select
+        name="taskManagerId"
+        styles={customStyles}
+        options={managerOptions}
+        onChange={handleSelectChange}
+        value={managerOptions.find(opt => opt.value === String(form.taskManagerId))}
+    />
+</FormGroup>
         <FormGroup>
           <FormLabel>시작일</FormLabel>
           <FormInput type="date" name="taskStartDate" value={formatDateForInput(form.taskStartDate)} onChange={handleChange} />
@@ -396,7 +404,7 @@ const SearchInput = styled.input`
 `;
 
 const NewTaskButton = styled.button`
-  background-color: #7c3aed;
+  background-color: #4fa5eb;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -496,7 +504,7 @@ const PageButton = styled.button`
   width: 28px;
   height: 28px;
   border: 1px solid #e2e8f0;
-  background-color: ${({ active }) => (active ? '#7c3aed' : 'white')};
+  background-color: ${({ active }) => (active ? '#4fa5eb' : 'white')};
   color: ${({ active }) => (active ? 'white' : '#334155')};
   border-radius: 6px;
   cursor: pointer;
@@ -680,9 +688,9 @@ function TaskMain() {
   };
 
   const managerOptions = members.map(member => ({
-    value: member.user_id, 
-    label: member.name 
-  }));
+    value: member.name, 
+    label: member.name
+}));
 
   return (
     <>
