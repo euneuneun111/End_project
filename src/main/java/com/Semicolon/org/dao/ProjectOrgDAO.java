@@ -17,6 +17,7 @@ public interface ProjectOrgDAO {
     int getProjectSeq();  // 시퀀스 조회
     
     List<ProjectOrgDTO> selectProjectsByUser(String username);
-
+    
+    List<ProjectOrgDTO> searchProjectsByName(String projectName);
 
 }

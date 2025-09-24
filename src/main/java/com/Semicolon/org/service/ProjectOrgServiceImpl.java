@@ -42,4 +42,9 @@ public class ProjectOrgServiceImpl implements ProjectOrgService {
 	    return projectOrgDAO.selectProjectsByUser(username);
 	}
 
+	@Override
+	public List<ProjectOrgDTO> searchProjectsByName(String projectName) {
+		 return projectOrgDAO.searchProjectsByName(projectName);
+	}
+
 }

@@ -19,5 +19,8 @@ public interface ProjectOrgService {
     
     
     List<ProjectOrgDTO> getProjectsByUser(String username);
+    
+    List<ProjectOrgDTO> searchProjectsByName(String projectName);
+
 
 }

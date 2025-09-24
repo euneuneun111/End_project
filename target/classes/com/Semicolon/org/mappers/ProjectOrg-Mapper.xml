@@ -94,7 +94,21 @@
 		PROJECT_MANAGER,
 		PROJECT_START_DATE
 		FROM PROJECT
-		WHERE ',' || PROJECT_MANAGER || ',' LIKE '%,' || #{username} || ',%'
+		WHERE ',' ||
+		PROJECT_MANAGER || ',' LIKE '%,' || #{username} || ',%'
+	</select>
+
+	<!-- 프로젝트 이름 검색 -->
+	<select id="searchProjectsByName" parameterType="string"
+		resultMap="ProjectResultMap">
+		SELECT PROJECT_ID,
+		PROJECT_NAME,
+		PROJECT_LOGO,
+		PROJECT_DESC,
+		PROJECT_MANAGER,
+		PROJECT_START_DATE
+		FROM PROJECT
+		WHERE PROJECT_NAME LIKE '%' || #{projectName} || '%'
 	</select>
 
 </mapper>

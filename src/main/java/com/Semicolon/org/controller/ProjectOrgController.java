@@ -234,4 +234,11 @@ public class ProjectOrgController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("프로젝트 생성 실패");
         }
     }
+    
+    // 🔍 프로젝트 이름으로 검색
+    @GetMapping("/api/projects/search")
+	@ResponseBody
+    public List<ProjectOrgDTO> searchProjects(@RequestParam("name") String projectName) {
+    	return projectOrgService.searchProjectsByName(projectName);
+    }
 }
