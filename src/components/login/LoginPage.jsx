@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { login } from "./LoginApi";
 import { useNavigate } from "react-router-dom";
 
-
 const Container = styled.div`
   width: 100%;
   min-height: 100vh;
@@ -84,6 +83,17 @@ const Register = styled.p`
     color: black;
     cursor: pointer;
   }
+
+  .forgot {
+    display: block;
+    margin-top: 8px;
+    font-weight: normal;
+    color: #2c7be5;
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 export default function LoginPage() {
@@ -93,7 +103,6 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault(); // 페이지 리로드 방지
-
     if (!id || !password) {
       alert("ID와 Password를 입력해주세요.");
       return;
@@ -142,6 +151,9 @@ export default function LoginPage() {
         <Register>
           Don’t have an Account?{" "}
           <span onClick={() => navigate("/signup")}>Register</span>
+          <span className="forgot" onClick={() => navigate("/find-password")}>
+            Forgot Password?
+          </span>
         </Register>
       </Box>
     </Container>

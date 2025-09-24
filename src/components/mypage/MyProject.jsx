@@ -208,7 +208,7 @@ function MyProject({ projects }) {
                 <strong>Start Date:</strong>{" "}
                 {new Date(project.projectStartDate).toLocaleDateString()}
               </InfoRow>
-              <InfoRow><strong>Manager:</strong> {project.projectManager}</InfoRow>
+              <InfoRow><strong>Member:</strong> {project.projectManager}</InfoRow>
               <InfoRow><strong>Description:</strong> {project.projectDesc}</InfoRow>
             </CardContent>
 
