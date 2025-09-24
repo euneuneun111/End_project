@@ -94,6 +94,10 @@
 		FROM member
 		WHERE name = #{nickname}
 	</select>
+	
+	<select id="countById" parameterType="string" resultType="int">
+    SELECT COUNT(*) FROM member WHERE user_id = #{userId}
+</select>
 
 </mapper>
 

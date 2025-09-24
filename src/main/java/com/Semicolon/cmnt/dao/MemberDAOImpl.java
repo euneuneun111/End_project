@@ -101,4 +101,9 @@ public class MemberDAOImpl implements MemberDAO{
         return session.selectOne("Member-Mapper.countByNickname", nickname);
     }
 
+    @Override
+    public int countById(String userId) throws SQLException {
+        return session.selectOne("Member-Mapper.countById", userId);
+    }
+
 }

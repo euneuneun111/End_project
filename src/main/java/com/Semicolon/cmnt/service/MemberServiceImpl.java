@@ -92,4 +92,10 @@ public class MemberServiceImpl implements MemberService {
 	    return count == 0;
 	}
 
+	@Override
+	public boolean isIdAvailable(String userId) throws SQLException {
+		 int count = memberDAO.countById(userId); 
+	    return count == 0;
+	}
+
 }
