@@ -63,6 +63,7 @@
 		#{projectId}
 	</update>
 
+
 	<!-- 프로젝트 삭제 -->
 	<delete id="deleteProject" parameterType="string">
 		DELETE FROM PROJECT
@@ -108,7 +109,9 @@
 		PROJECT_MANAGER,
 		PROJECT_START_DATE
 		FROM PROJECT
-		WHERE PROJECT_NAME LIKE '%' || #{projectName} || '%'
+		WHERE PROJECT_NAME LIKE
+		'%' || #{projectName} || '%'
 	</select>
+
 
 </mapper>

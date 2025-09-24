@@ -51,4 +51,9 @@ public class ProjectOrgDAOImpl implements ProjectOrgDAO {
 		return session.selectList("ProjectOrg-Mapper.searchProjectsByName", projectName);
 	}
 
+	@Override
+	public void updateProject(ProjectOrgDTO projectOrgDTO) {
+	    session.update("ProjectOrg-Mapper.updateProject", projectOrgDTO);
+	}
+
 }

@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -283,4 +286,44 @@ public class ProjectOrgController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
+    @PostMapping("/api/join")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> joinProject(
+            @RequestBody Map<String, String> body,
+            HttpSession session) {
+
+        String projectId = body.get("projectId"); // JSON에서 추출
+        Map<String, Object> result = new HashMap<>();
+
+        MemberVO loginUser = (MemberVO) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            result.put("success", false);
+            result.put("message", "로그인이 필요합니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+        }
+
+        String username = loginUser.getName();
+
+        try {
+            boolean joined = projectOrgService.joinProject(projectId, username);
+
+            if (joined) {
+                result.put("success", true);
+                result.put("message", "프로젝트에 참여했습니다.");
+            } else {
+                result.put("success", false);
+                result.put("message", "이미 참여한 프로젝트입니다.");
+            }
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "참여 중 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+
 }

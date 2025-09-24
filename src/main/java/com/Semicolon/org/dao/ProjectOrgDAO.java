@@ -20,4 +20,6 @@ public interface ProjectOrgDAO {
     
     List<ProjectOrgDTO> searchProjectsByName(String projectName);
 
+    void updateProject(ProjectOrgDTO projectOrgDTO);
+
 }

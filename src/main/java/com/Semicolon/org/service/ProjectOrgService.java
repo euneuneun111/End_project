@@ -21,6 +21,9 @@ public interface ProjectOrgService {
     List<ProjectOrgDTO> getProjectsByUser(String username);
     
     List<ProjectOrgDTO> searchProjectsByName(String projectName);
+    
+    boolean joinProject(String projectId, String username);
+
 
 
 }
