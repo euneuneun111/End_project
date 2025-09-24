@@ -241,4 +241,46 @@ public class ProjectOrgController {
     public List<ProjectOrgDTO> searchProjects(@RequestParam("name") String projectName) {
     	return projectOrgService.searchProjectsByName(projectName);
     }
+    
+    @GetMapping("/api/getLogo")
+    @ResponseBody
+    public ResponseEntity<byte[]> getapiProjectLogo(@RequestParam String projectId) {
+        ProjectOrgDTO project = projectOrgService.getProjectDetail(projectId);
+
+        // 프로젝트 또는 로고 없으면 404
+        if (project == null || project.getProjectLogo() == null || project.getProjectLogo().isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // 실제 파일 경로
+        File file = new File(projectUploadPath, project.getProjectLogo());
+        if (!file.exists()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        try (InputStream in = new FileInputStream(file)) {
+            byte[] bytes = IOUtils.toByteArray(in);
+
+            // Content-Type 설정
+            String lowerName = project.getProjectLogo().toLowerCase();
+            org.springframework.http.MediaType mediaType;
+            if (lowerName.endsWith(".png")) {
+                mediaType = org.springframework.http.MediaType.IMAGE_PNG;
+            } else if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+                mediaType = org.springframework.http.MediaType.IMAGE_JPEG;
+            } else if (lowerName.endsWith(".gif")) {
+                mediaType = org.springframework.http.MediaType.IMAGE_GIF;
+            } else {
+                mediaType = org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .body(bytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
