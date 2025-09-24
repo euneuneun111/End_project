@@ -74,7 +74,8 @@
 		resultType="string">
 		SELECT PROJECT_MANAGER
 		FROM PROJECT
-		WHERE PROJECT_ID = #{projectId}
+		WHERE PROJECT_ID =
+		#{projectId}
 	</select>
 
 	<select id="selectMembersByNames" parameterType="list"
@@ -94,10 +95,17 @@
 		FROM member
 		WHERE name = #{nickname}
 	</select>
-	
+
 	<select id="countById" parameterType="string" resultType="int">
-    SELECT COUNT(*) FROM member WHERE user_id = #{userId}
-</select>
+		SELECT
+		COUNT(*) FROM member WHERE user_id = #{userId}
+	</select>
+
+	<update id="updateMemberPassword" parameterType="member">
+		UPDATE member
+		SET user_pwd = #{user_pwd}
+		WHERE user_id = #{user_id}
+	</update>
 
 </mapper>
 

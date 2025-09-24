@@ -98,4 +98,32 @@ public class MemberServiceImpl implements MemberService {
 	    return count == 0;
 	}
 
+	@Override
+	public boolean checkMemberByIdAndNickname(String id, String nickname) throws SQLException {
+	    MemberVO member = memberDAO.selectMemberById(id);
+	    if (member == null) return false;
+
+	    return nickname.equals(member.getName());
+	}
+
+	@Override
+	public String resetPassword(String id) throws SQLException {
+	    MemberVO member = memberDAO.selectMemberById(id);
+	    if (member == null) return null;
+
+	    // 임시 비밀번호 생성
+	    String tempPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+
+	    // 보통은 여기서 암호화 (Spring Security PasswordEncoder 등 사용)
+	    // String encodedPassword = passwordEncoder.encode(tempPassword);
+	    // member.setPwd(encodedPassword);
+	    member.setUser_pwd(tempPassword); // 단순 저장 (암호화 미적용 버전)
+
+	    // DAO 호출해서 비밀번호 갱신
+	    memberDAO.updateMemberPassword(member);
+
+	    return tempPassword; // 컨트롤러에서 사용자에게 안내/메일 발송 등에 사용
+	}
+
+
 }

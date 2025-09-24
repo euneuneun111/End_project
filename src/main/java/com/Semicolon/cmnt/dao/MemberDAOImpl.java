@@ -12,98 +12,106 @@ import com.Semicolon.cmnt.command.PageMaker;
 import com.Semicolon.cmnt.dto.EngineerVO;
 import com.Semicolon.cmnt.dto.MemberVO;
 
-public class MemberDAOImpl implements MemberDAO{
-	
-	private SqlSession session;	
+public class MemberDAOImpl implements MemberDAO {
+
+	private SqlSession session;
+
 	public MemberDAOImpl(SqlSession session) {
 		this.session = session;
 	}
 
 	@Override
 	public List<MemberVO> selectMemberList(PageMaker pageMaker) throws SQLException {
-		int offset = pageMaker.getStartRow()-1;
+		int offset = pageMaker.getStartRow() - 1;
 		int limit = pageMaker.getPerPageNum();
-		
-		RowBounds rows = new RowBounds(offset,limit);
-		
-		return session.selectList("Member-Mapper.selectMemberList",pageMaker,rows);
+
+		RowBounds rows = new RowBounds(offset, limit);
+
+		return session.selectList("Member-Mapper.selectMemberList", pageMaker, rows);
 	}
+
 	@Override
 	public int selectMemberListCount(PageMaker pageMaker) throws SQLException {
-		return session.selectOne("Member-Mapper.selectMemberListCount",pageMaker);
+		return session.selectOne("Member-Mapper.selectMemberListCount", pageMaker);
 	}
 
 	@Override
 	public MemberVO selectMemberById(String user_id) throws SQLException {
-		return session.selectOne("Member-Mapper.selectMemberByID",user_id);
+		return session.selectOne("Member-Mapper.selectMemberByID", user_id);
 	}
 
 	@Override
 	public void insertMember(MemberVO member) throws SQLException {
-		session.insert("Member-Mapper.insertMember",member);	
+		session.insert("Member-Mapper.insertMember", member);
 	}
 
 	@Override
 	public void updateMember(MemberVO member) throws SQLException {
-		session.update("Member-Mapper.updateMember",member);
-		
+		session.update("Member-Mapper.updateMember", member);
+
 	}
 
 	@Override
 	public void deleteMember(String id) throws SQLException {
-		session.delete("Member-Mapper.deleteMember",id);
-		
+		session.delete("Member-Mapper.deleteMember", id);
+
 	}
 
 	@Override
 	public List<String> selectAuthoritiesById(String id) throws SQLException {
-		return session.selectList("Member-Mapper.selectAuthoritiesById",id);
+		return session.selectList("Member-Mapper.selectAuthoritiesById", id);
 	}
 
 	@Override
 	public void insertAuthorities(String id, String authority) throws SQLException {
-		Map<String,Object> paramMap = new HashMap<String,Object>();
-		paramMap.put("id",id);
-		paramMap.put("authority",authority);
-		session.insert("Member-Mapper.insertAuthorities",paramMap);	
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("id", id);
+		paramMap.put("authority", authority);
+		session.insert("Member-Mapper.insertAuthorities", paramMap);
 	}
 
 	@Override
 	public void deleteAllAuthorityById(String id) throws SQLException {
-		session.delete("Member-Mapper.deleteAllAuthorityById",id);	
+		session.delete("Member-Mapper.deleteAllAuthorityById", id);
 	}
 
 	@Override
 	public void isnertEngineer(EngineerVO engineer) throws SQLException {
-		session.insert("Engineer-Mapper.insertEngineer",engineer);		
+		session.insert("Engineer-Mapper.insertEngineer", engineer);
 	}
 
 	@Override
 	public List<String> selectNicknamesByKeyword(String keyword) throws SQLException {
-	    // keyword에 %가 포함되어 있으면 그대로 사용, 없으면 붙이기
-	    if (!keyword.contains("%")) {
-	        keyword = "%" + keyword + "%";
-	    }
-	    return session.selectList("Member-Mapper.selectNicknamesByKeyword", keyword);
+		// keyword에 %가 포함되어 있으면 그대로 사용, 없으면 붙이기
+		if (!keyword.contains("%")) {
+			keyword = "%" + keyword + "%";
+		}
+		return session.selectList("Member-Mapper.selectNicknamesByKeyword", keyword);
 	}
+
 	@Override
-    public String selectProjectManagersString(String projectId) throws SQLException {
-        return session.selectOne("Member-Mapper.selectProjectManagersString", projectId);
-    }
-    
-    @Override
-    public List<MemberVO> selectMembersByNames(List<String> names) throws SQLException {
-        return session.selectList("Member-Mapper.selectMembersByNames", names);
-    }
+	public String selectProjectManagersString(String projectId) throws SQLException {
+		return session.selectOne("Member-Mapper.selectProjectManagersString", projectId);
+	}
 
-    @Override
-    public int countByNickname(String nickname) throws SQLException {
-        return session.selectOne("Member-Mapper.countByNickname", nickname);
-    }
+	@Override
+	public List<MemberVO> selectMembersByNames(List<String> names) throws SQLException {
+		return session.selectList("Member-Mapper.selectMembersByNames", names);
+	}
 
-    @Override
-    public int countById(String userId) throws SQLException {
-        return session.selectOne("Member-Mapper.countById", userId);
-    }
+	@Override
+	public int countByNickname(String nickname) throws SQLException {
+		return session.selectOne("Member-Mapper.countByNickname", nickname);
+	}
+
+	@Override
+	public int countById(String userId) throws SQLException {
+		return session.selectOne("Member-Mapper.countById", userId);
+	}
+
+	@Override
+	public void updateMemberPassword(MemberVO member) throws SQLException {
+		session.update("Member-Mapper.updateMemberPassword", member);
+	}
 
 }

@@ -31,5 +31,11 @@ public interface MemberService {
 
 	// ID 중복 확인
 	boolean isIdAvailable(String userId) throws SQLException;
+	
+	// ID와 닉네임 일치 여부 확인
+	boolean checkMemberByIdAndNickname(String id, String nickname) throws SQLException;
+
+	// 임시 비밀번호 발급 및 업데이트
+	String resetPassword(String id) throws SQLException;
 
 }

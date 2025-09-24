@@ -9,6 +9,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +28,8 @@ import com.Semicolon.cmnt.service.MemberService;
 @Controller
 @RequestMapping("/member")
 public class MemberController {
-
+	
+	
     private final MemberService service;
     private final EngineerService engineerService;
 
@@ -118,7 +120,7 @@ public class MemberController {
         return Map.of("available", available);
     }
     */
-
+    
     // 회원가입
     @ResponseBody
     @PostMapping("/api/members/signup")
@@ -182,4 +184,27 @@ public class MemberController {
         }
         return ResponseEntity.ok(result);
     }
+    
+    
+    @PostMapping("/api/members/findpassword")
+    @ResponseBody
+    public Map<String, Object> findPassword(@RequestBody Map<String, String> request) throws SQLException {
+        String id = request.get("id");
+        String nickname = request.get("nickname");
+        
+        Map<String, Object> result = new HashMap<>();
+        boolean exists = service.checkMemberByIdAndNickname(id, nickname);
+
+        if (exists) {
+            String tempPassword = service.resetPassword(id);
+            result.put("success", true);
+            result.put("message", "임시 비밀번호 발급됨");
+            result.put("tempPassword", tempPassword);
+        } else {
+            result.put("success", false);
+            result.put("message", "일치하는 회원 없음");
+        }
+        return result;
+    }
+    
 }

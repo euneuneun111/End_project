@@ -33,6 +33,8 @@ public interface MemberDAO {
     
     int countById(String userId) throws SQLException;
 
+    void updateMemberPassword(MemberVO member) throws SQLException;
+
 }
 
 
