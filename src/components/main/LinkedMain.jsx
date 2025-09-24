@@ -6,6 +6,7 @@ import Projectbar from '../project/main/Projectbar.jsx';
 
 import Home from './Home.jsx';
 import ProjectCreate from './ProjectCreate.jsx';
+import ProjectMain from "./ProjectMain";
 
 import CalendarMain from '../project/calendar/CalendarMain.jsx';
 import IssueMain from '../project/issue/IssueMain.jsx';
@@ -64,6 +65,9 @@ function LinkedMain() {
             <Route path="/home" element={<Home />} />
             <Route path="/project/create" element={<ProjectCreate />} />
             <Route path="/project/main" element={<Projectbar />} />
+            <Route path="/project/:projectId/main" element={<ProjectMain />} />
+
+
             <Route path="/calendar/main/:projectId" element={<CalendarMain />} />
 
             <Route path="/gant/main/:projectId" element={<GantMain />} />
