@@ -58,7 +58,7 @@
 				<button type="button" id="approvalBtn" class="btn"
 					style="border: 1px solid transparent; margin-left: 10px;"
 					onclick="toggleApproval(${meeting.id});"
-					data-status="${meeting.status}">${meeting.status eq 'APPROVED' ? '승인' : '미승인'}
+					data-status="${meeting.status}">${meeting.status eq '승인' ? '승인' : '미승인'}
 				</button>
 			</div>
 
@@ -172,7 +172,7 @@ function toggleApproval(meetingId) {
         if (data.success) {
             const btn = document.getElementById('approvalBtn');
             btn.dataset.status = data.newStatus;
-            btn.textContent = data.newStatus === 'APPROVED' ? '승인' : '미승인';
+            btn.textContent = data.newStatus === '승인' ? '승인' : '미승인';
             updateApprovalBtnColor();
         } else {
             alert('변경 실패');

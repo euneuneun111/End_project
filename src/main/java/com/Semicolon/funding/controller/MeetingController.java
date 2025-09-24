@@ -269,5 +269,63 @@ public class MeetingController {
         }
     }
     
+    
+ // ---------------- API: 회의 수정 (JSON) ----------------
+    @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+    @PostMapping("/api/modify/{id}")
+    @ResponseBody
+    public Map<String, Object> modifyMeetingApi(
+            @PathVariable("projectId") String projectId,
+            @PathVariable("id") int id,
+            @RequestBody MeetingModifyCommand modifyCommand) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 커맨드 객체를 VO로 변환
+            MeetingVO meeting = modifyCommand.toMeetingVO();
+            meeting.setId(id); // 수정 대상 ID
+            meeting.setProjectId(projectId);
+            meeting.setTitle(HTMLInputFilter.htmlSpecialChars(meeting.getTitle()));
+
+            // 회의 수정 서비스 호출
+            meetingService.modifyMeeting(meeting);
+
+            result.put("success", true);
+            result.put("message", "회의가 수정되었습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "회의 수정 중 오류가 발생했습니다.");
+        }
+
+        return result;
+    }
+
+   
+    @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+    @GetMapping("/api/remove")
+    @ResponseBody
+    public Map<String, Object> removeMeetingApi(
+            @PathVariable("projectId") String projectId,
+            int id) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 회의 삭제 서비스 호출
+            meetingService.removeMeeting(id);
+
+            result.put("success", true);
+            result.put("message", "회의가 삭제되었습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "삭제 중 오류가 발생했습니다.");
+        }
+
+        return result;
+    }
+    
 }
 
