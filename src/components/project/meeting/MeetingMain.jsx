@@ -235,10 +235,10 @@ function MeetingMain() {
       <TableWrapper>
         <Table>
           <colgroup>
-            <col style={{ width: "25%" }} />
-            <col style={{ width: "35%" }} />
-            <col style={{ width: "25%" }} />
-            <col style={{ width: "15%" }} />
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "20%" }} />
           </colgroup>
           <thead>
             <tr>
