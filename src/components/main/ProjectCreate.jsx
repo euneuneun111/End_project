@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";   // ✅ 이거 추가
-
+import axios from "axios";   // ✅ axios 추가
 
 const Container = styled.div`
   width: 95%;
@@ -175,8 +174,6 @@ const SubmitButton = styled.button`
   cursor: pointer;
 `;
 
-// ... (styled-components 그대로)
-
 function ProjectCreate() {
   const [form, setForm] = useState({ name: "", description: "" });
   const [nickname, setNickname] = useState("");
@@ -214,11 +211,35 @@ function ProjectCreate() {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleAddMember = () => {
+  // ✅ 닉네임 추가 (서버 검증 포함)
+  const handleAddMember = async () => {
     if (!nickname.trim()) return;
-    if (members.includes(nickname.trim())) return;
-    setMembers([...members, nickname.trim()]);
-    setNickname("");
+
+    try {
+      const res = await axios.get(
+        `/project/member/api/members/check-name?name=${encodeURIComponent(
+          nickname.trim()
+        )}`
+      );
+
+      // ⚠️ 서버 응답 형식에 맞게 수정 필요
+      // 예: { exists: true/false } 또는 { available: true/false }
+      if (!res.data.exists) {
+        alert("존재하지 않는 닉네임입니다.");
+        return;
+      }
+
+      if (members.includes(nickname.trim())) {
+        alert("이미 추가된 멤버입니다.");
+        return;
+      }
+
+      setMembers([...members, nickname.trim()]);
+      setNickname("");
+    } catch (err) {
+      console.error("닉네임 확인 오류:", err);
+      alert("닉네임 확인 중 오류가 발생했습니다.");
+    }
   };
 
   const handleImageChange = (e) => {
