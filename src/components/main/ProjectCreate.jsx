@@ -76,7 +76,7 @@ const FileButton = styled.button`
 `;
 
 const ImagePreviewWrapper = styled.div`
-  width: 40%;
+  width: 60%;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -93,7 +93,7 @@ const ImagePreview = styled.img`
   width: 200px;
   height: 150px;
   border-radius: 12px;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid #ccc;
 `;
 
