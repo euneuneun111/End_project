@@ -158,10 +158,13 @@ const MemberList = styled.div`
 const MemberItem = styled.div`
   padding: 6px 12px;
   border-radius: 12px;
-  background-color: ${(props) => (props.isCurrentUser ? "#4287c4" : "#e6f0ff")};
-  color: ${(props) => (props.isCurrentUser ? "#fff" : "#0366d6")};
+  background-color: ${(props) => (props.$isCurrentUser ? "#4287c4" : "#e6f0ff")};
+  color: ${(props) => (props.$isCurrentUser ? "#fff" : "#0366d6")};
   font-weight: 500;
 `;
+
+// JSX에서 사용할 때
+
 
 const SubmitButton = styled.button`
   padding: 14px;
@@ -222,10 +225,9 @@ function ProjectCreate() {
         )}`
       );
 
-      // ⚠️ 서버 응답 형식에 맞게 수정 필요
-      // 예: { exists: true/false } 또는 { available: true/false }
-      if (!res.data.exists) {
-        alert("존재하지 않는 닉네임입니다.");
+      // 서버에서 { available: true/false } 반환
+      if (res.data.available) {
+        alert("존재하지 않는 닉네임입니다."); // 사용 가능 = DB에 없음
         return;
       }
 
@@ -242,6 +244,7 @@ function ProjectCreate() {
     }
   };
 
+
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     const filePreviews = files.map((file) => URL.createObjectURL(file));
@@ -255,7 +258,7 @@ function ProjectCreate() {
     const formData = new FormData();
     formData.append("projectName", form.name);
     formData.append("projectDesc", form.description);
-    formData.append("projectManager", members.join(",")); 
+    formData.append("projectManager", members.join(","));
 
     imageFiles.forEach((file) => {
       formData.append("projectLogo", file);
@@ -350,7 +353,7 @@ function ProjectCreate() {
         {/* 멤버 목록 */}
         <MemberList>
           {members.map((m, i) => (
-            <MemberItem key={i} isCurrentUser={loginUser && m === loginUser.name}>
+            <MemberItem key={i} $isCurrentUser={loginUser && m === loginUser.name}>
               {m}
             </MemberItem>
           ))}
