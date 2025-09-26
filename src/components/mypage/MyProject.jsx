@@ -216,7 +216,7 @@ function MyProject({ projects }) {
             {openProjectId === project.projectId && (
               <ModalOverlay onClick={closeModal}>
                 <ModalContent onClick={(e) => e.stopPropagation()}>
-                  <ModalTitle>{project.projectName} 바로가기</ModalTitle>
+                  <ModalTitle>{project.projectName}</ModalTitle>
                   <CloseXButton onClick={closeModal}>×</CloseXButton>
                   <ModalLinks>
                     <Link to={`/issue/main/${project.projectId}`}>Issue</Link>
